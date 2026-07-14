@@ -25,9 +25,16 @@ In the Cloudflare dashboard: **Workers & Pages → barox-dev → Settings → Do
 
 ## 4. Enable auto-deploy on push to `main`
 
-Use Cloudflare **Workers Builds** (native git integration — no GitHub Actions/secrets needed):
+`.github/workflows/deploy.yml` already builds and runs `wrangler deploy` on every push to `main` — this keeps the deploy pipeline versioned and reviewable in the repo rather than living only as unversioned dashboard config. It just needs two repo secrets, which only you (as the account owner) can add:
 
-**Workers & Pages → barox-dev → Settings → Build → Connect to Git**, select the `baroxdev/barox.dev` repo, branch `main`, build command `pnpm build`, deploy command `npx wrangler deploy`. Every push to `main` will then trigger an automatic build + deploy.
+```bash
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID
+```
+
+Use the API token from step 1 (Workers Scripts: Edit scope) and the account ID shown on the Cloudflare dashboard's right sidebar. Once both secrets are set, the next push to `main` triggers the workflow automatically.
+
+(Cloudflare's dashboard-native **Workers Builds** git integration is an alternative if you'd rather not use GitHub Actions — **Workers & Pages → barox-dev → Settings → Build → Connect to Git** — but it isn't used here since its build config lives outside the repo, unversioned.)
 
 ## 5. Enable Cloudflare Web Analytics
 
@@ -37,5 +44,5 @@ Use Cloudflare **Workers Builds** (native git integration — no GitHub Actions/
 
 - [ ] `wrangler deploy` succeeds and `*.workers.dev` URL loads
 - [ ] `barox.dev` resolves to the Worker over HTTPS
-- [ ] A push to `main` triggers a build in the Cloudflare dashboard without manual intervention
+- [ ] A push to `main` triggers the `Deploy` GitHub Actions workflow and it succeeds
 - [ ] Web Analytics dashboard shows a pageview after visiting the site
