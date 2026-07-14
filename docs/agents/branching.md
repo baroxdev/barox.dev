@@ -26,6 +26,12 @@ to `canary.barox.dev` on every push (see `docs/deploy.md`).
   (`.github/workflows/deploy-canary.yml`) both run on every push to
   `canary`, so `canary.barox.dev` always reflects lint/typecheck/test-passing
   work — never a merge that's known to be broken.
+- **A ticket's issue stays open after its PR merges into `canary`.**
+  `Closes #<n>` in a commit/PR only auto-closes the issue when that commit
+  lands on the repo's *default* branch — which is `main`, not `canary` — so
+  merging into `canary` alone won't close anything, and that's expected. The
+  issue closes for real once the owner promotes `canary` into `main`. Don't
+  manually close a ticket's issue just because its PR merged into `canary`.
 
 ## Why
 
