@@ -2,6 +2,10 @@
 
 ## Agent skills
 
+### Branching
+
+`main` is kept clean; all ticket work branches from and targets `canary` until the site owner says otherwise. See `docs/agents/branching.md`.
+
 ### Issue tracker
 
 Issues and specs live as GitHub Issues; uses the `gh` CLI. See `docs/agents/issue-tracker.md`.
