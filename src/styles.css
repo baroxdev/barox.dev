@@ -1,5 +1,52 @@
-
 @import "tailwindcss";
+@import "@fontsource/fira-sans/400.css";
+@import "@fontsource/fira-sans/500.css";
+@import "@fontsource/fira-sans/600.css";
+@import "@fontsource/fira-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/* Class-based dark mode: toggled via the .dark class on <html>,
+   driven by src/theme/ (see src/theme/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Single source of truth for color tokens. Dark-mode values below
+     override these same custom properties under .dark — components never
+     need dark: variants for these, they just use bg-paper/text-ink/etc. */
+  --color-paper: #fbf6ec;
+  --color-ink: #1f2430;
+  --color-ink-muted: #5b5a52;
+  --color-accent: #1b3a5c;
+  --color-border: #e2d9c4;
+
+  /* Oversized, confident type scale (rubyonrails.org-inspired) — overrides
+     Tailwind's defaults so the whole scale shifts up systematically rather
+     than one-off font-size bumps per component. */
+  --text-base: 1.1875rem;
+  --text-base--line-height: 1.7;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2.875rem;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 3.75rem;
+  --text-4xl--line-height: 1.05;
+}
+
+.dark {
+  --color-paper: #201d19;
+  --color-ink: #ede7d9;
+  --color-ink-muted: #a8a296;
+  --color-accent: #7fa8d9;
+  --color-border: #3a362f;
+}
 
 * {
   box-sizing: border-box;
@@ -13,5 +60,50 @@ body,
 
 body {
   margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+/* One deliberately "imperfect but organized" typographic detail (used
+   sparingly — the nav wordmark only, not site-wide). currentColor + mask
+   means it adapts to the accent color in both themes with a single SVG,
+   no light/dark duplication. */
+@layer components {
+  .link-hand-underline {
+    position: relative;
+    text-decoration: none;
+    padding-bottom: 3px;
+  }
+
+  /* The squiggle lives on a pseudo-element, not the link itself — masking
+     the link directly would clip its text down to the mask shape too. */
+  .link-hand-underline::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='6' viewBox='0 0 40 6'%3E%3Cpath d='M1 3 Q10 0.5 20 3 T39 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='6' viewBox='0 0 40 6'%3E%3Cpath d='M1 3 Q10 0.5 20 3 T39 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+    -webkit-mask-size: 14px 6px;
+    mask-size: 14px 6px;
+  }
+}
