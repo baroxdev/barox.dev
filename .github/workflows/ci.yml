@@ -1,15 +1,16 @@
-name: Deploy Canary
+name: CI
 
 on:
+  pull_request:
   push:
-    branches: [canary]
+    branches: [main, canary]
 
 concurrency:
-  group: deploy-canary-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  check:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,9 +33,3 @@ jobs:
       - run: pnpm test:coverage
 
       - run: pnpm build
-
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env canary

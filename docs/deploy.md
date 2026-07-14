@@ -44,7 +44,7 @@ For trying out in-progress work before it hits production, `wrangler.jsonc` defi
 pnpm run deploy:canary
 ```
 
-`.github/workflows/deploy-canary.yml` runs this same deploy automatically on every push to a `canary` branch, reusing the `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets from step 4 — no extra secrets to add. Push your in-progress work to a `canary` branch (instead of `main`) to see it live at `canary.barox.dev` before merging.
+`.github/workflows/deploy-canary.yml` runs this same deploy automatically on every push to the `canary` branch, reusing the `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets from step 4 — no extra secrets to add. `canary` is currently the active integration branch (see `docs/agents/branching.md`): ticket work branches from and merges into `canary`, so every merge shows up live at `canary.barox.dev` before the owner promotes `canary` into `main`.
 
 ## 6. Enable Cloudflare Web Analytics
 
