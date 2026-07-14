@@ -18,6 +18,10 @@ Default five canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, 
 
 Single-context layout — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+### Data fetching
+
+Routes fetch server-derived data via TanStack Query (SSR prefetch + streaming hydration), not bare loaders or `useEffect`. See `docs/agents/tanstack-query.md`.
+
 <!-- intent-skills:start -->
 
 # TanStack Intent - before editing files, run the matching guidance command.
