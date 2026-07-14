@@ -8,6 +8,8 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 
 import appCss from '../styles.css?url'
+import { NavBar } from '../components/nav-bar.tsx'
+import { themeInitScript } from '../theme/theme-init-script.ts'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -41,9 +43,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Must run before any paint to avoid a flash of the wrong theme. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
         <HeadContent />
       </head>
       <body>
+        <NavBar />
         {children}
         <TanStackDevtools
           config={{
