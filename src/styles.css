@@ -7,7 +7,11 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 
 /* Class-based dark mode: toggled via the .dark class on <html>,
-   driven by src/theme/ (see src/theme/theme.ts). */
+   driven by src/theme/ (see src/theme/theme.ts). The 'dark' class name
+   here must stay in sync with the literal 'dark' string in
+   src/theme/theme-init-script.ts and src/theme/use-theme.ts — those run
+   before/outside this stylesheet's scope so they can't share a constant
+   with it. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -38,6 +42,12 @@
   --text-3xl--line-height: 1.15;
   --text-4xl: 3.75rem;
   --text-4xl--line-height: 1.05;
+
+  /* Spacing token — Tailwind v4 derives its entire spacing utility set
+     (p-*, gap-*, m-*, etc.) from this one value. Declared explicitly here
+     so it's part of this design system's token block rather than an
+     implicit framework default. */
+  --spacing: 0.25rem;
 }
 
 .dark {
@@ -70,6 +80,31 @@ body {
     color 0.2s ease;
 }
 
+/* Base link treatment — reusable, not duplicated per-component. Individual
+   components (e.g. NavBar's active-route styling) can still layer their
+   own utility classes on top. Must be in @layer base: Tailwind v4 utility
+   classes (like NavBar's no-underline) live in @layer utilities, and
+   unlayered CSS always wins over any layered rule regardless of
+   specificity — an unlayered `a` rule here would make no-underline a
+   no-op. */
+@layer base {
+  a {
+    color: var(--color-accent);
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(
+      in oklab,
+      var(--color-accent) 45%,
+      transparent
+    );
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.15s ease;
+  }
+
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
 code,
 pre,
 kbd {
@@ -82,6 +117,10 @@ kbd {
    no light/dark duplication. */
 @layer components {
   .link-hand-underline {
+    /* One wave period, sized 1:1 with the mask tile below so repeat-x
+       tiles cleanly instead of squashing/stretching the path. */
+    --underline-squiggle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M1 3 Q4 0.5 7 3 T13 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+
     position: relative;
     text-decoration: none;
     padding-bottom: 3px;
@@ -97,8 +136,8 @@ kbd {
     left: 0;
     height: 6px;
     background-color: currentColor;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='6' viewBox='0 0 40 6'%3E%3Cpath d='M1 3 Q10 0.5 20 3 T39 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='6' viewBox='0 0 40 6'%3E%3Cpath d='M1 3 Q10 0.5 20 3 T39 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    -webkit-mask-image: var(--underline-squiggle);
+    mask-image: var(--underline-squiggle);
     -webkit-mask-repeat: repeat-x;
     mask-repeat: repeat-x;
     -webkit-mask-position: 0 0;

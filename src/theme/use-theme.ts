@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useLayoutEffect, useState } from 'react'
 import { persistTheme } from './theme.ts'
 import type { Theme } from './theme.ts'
 
@@ -11,7 +11,10 @@ export function useTheme() {
   // FOUC-prevention script (see __root.tsx) already applied pre-hydration.
   const [theme, setThemeState] = useState<Theme>('light')
 
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) so this runs before the browser paints —
+  // otherwise ThemeToggle's icon would flash the wrong one for a frame in
+  // dark mode, since useEffect fires after paint.
+  useLayoutEffect(() => {
     setThemeState(
       document.documentElement.classList.contains('dark') ? 'dark' : 'light',
     )

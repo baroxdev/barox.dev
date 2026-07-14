@@ -37,6 +37,15 @@ describe('getStoredTheme', () => {
     const storage = fakeStorage({ [THEME_STORAGE_KEY]: 'sepia' })
     expect(getStoredTheme(storage)).toBeNull()
   })
+
+  it('returns null rather than throwing when storage access is blocked', () => {
+    const storage = {
+      getItem: () => {
+        throw new Error('SecurityError: storage disabled')
+      },
+    }
+    expect(getStoredTheme(storage)).toBeNull()
+  })
 })
 
 describe('getSystemTheme', () => {
@@ -67,5 +76,14 @@ describe('persistTheme', () => {
     const storage = fakeStorage()
     persistTheme(storage, 'dark')
     expect(storage.__store.get(THEME_STORAGE_KEY)).toBe('dark')
+  })
+
+  it('does not throw when storage access is blocked', () => {
+    const storage = {
+      setItem: () => {
+        throw new Error('QuotaExceededError')
+      },
+    }
+    expect(() => persistTheme(storage, 'dark')).not.toThrow()
   })
 })
