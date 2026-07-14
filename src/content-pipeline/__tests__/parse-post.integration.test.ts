@@ -22,6 +22,11 @@ describe('parsePost against a real post file', () => {
     expect(post.tags).toEqual(['meta', 'tanstack-start'])
     expect(post.published).toBe(true)
     expect(post.compiledSource.length).toBeGreaterThan(0)
+    expect(
+      post.excerpt.startsWith('This is the first entry in the journal'),
+    ).toBe(true)
+    expect(post.excerpt).not.toMatch(/[#<`]/)
+    expect(post.excerpt.length).toBeLessThanOrEqual(201)
   })
 
   it('flows through the derived collections', () => {
