@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ThemeToggle } from '../theme/ThemeToggle.tsx'
+import { ThemeToggle } from './ThemeToggle.tsx'
 
 const NAV_LINKS = [
   { to: '/journal', label: 'Journal' },

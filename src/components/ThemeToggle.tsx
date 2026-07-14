@@ -1,5 +1,5 @@
 import { Moon, Sun } from 'lucide-react'
-import { useTheme } from './use-theme.ts'
+import { useTheme } from '../theme/use-theme.ts'
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()

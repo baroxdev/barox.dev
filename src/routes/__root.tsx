@@ -8,7 +8,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 
 import appCss from '../styles.css?url'
-import { NavBar } from '../nav/NavBar.tsx'
+import { NavBar } from '../components/NavBar.tsx'
 import { themeInitScript } from '../theme/theme-init-script.ts'
 
 interface RouterContext {
