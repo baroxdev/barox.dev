@@ -4,4 +4,10 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "env": {
+    "canary": {
+      "name": "barox-dev-canary",
+      "routes": [{ "pattern": "canary.barox.dev", "custom_domain": true }],
+    },
+  },
 }

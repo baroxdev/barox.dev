@@ -36,7 +36,17 @@ Use the API token from step 1 (Workers Scripts: Edit scope) and the account ID s
 
 (Cloudflare's dashboard-native **Workers Builds** git integration is an alternative if you'd rather not use GitHub Actions — **Workers & Pages → barox-dev → Settings → Build → Connect to Git** — but it isn't used here since its build config lives outside the repo, unversioned.)
 
-## 5. Enable Cloudflare Web Analytics
+## 5. Canary environment (`canary.barox.dev`)
+
+For trying out in-progress work before it hits production, `wrangler.jsonc` defines a second Worker via `env.canary` (name `barox-dev-canary`), routed to `canary.barox.dev` with `custom_domain: true`. Unlike the production domain in step 3, this one **doesn't need a manual dashboard click** — Cloudflare provisions a `custom_domain: true` route automatically the first time you deploy that environment, as long as the `barox.dev` zone is already on the account (it is) and `canary.barox.dev` has no conflicting DNS record (it shouldn't, being unused so far):
+
+```bash
+pnpm run deploy:canary
+```
+
+`.github/workflows/deploy-canary.yml` runs this same deploy automatically on every push to a `canary` branch, reusing the `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets from step 4 — no extra secrets to add. Push your in-progress work to a `canary` branch (instead of `main`) to see it live at `canary.barox.dev` before merging.
+
+## 6. Enable Cloudflare Web Analytics
 
 **Analytics & Logs → Web Analytics** in the dashboard → add `barox.dev` as a site → it auto-injects the cookie-less beacon for Workers-served sites (or copy the provided snippet into `src/routes/__root.tsx` if it isn't auto-injected). Confirm pageviews start appearing after visiting the live site.
 
@@ -45,4 +55,5 @@ Use the API token from step 1 (Workers Scripts: Edit scope) and the account ID s
 - [ ] `wrangler deploy` succeeds and `*.workers.dev` URL loads
 - [ ] `barox.dev` resolves to the Worker over HTTPS
 - [ ] A push to `main` triggers the `Deploy` GitHub Actions workflow and it succeeds
+- [ ] A push to `canary` triggers the `Deploy Canary` workflow and `canary.barox.dev` resolves over HTTPS
 - [ ] Web Analytics dashboard shows a pageview after visiting the site
