@@ -35,7 +35,7 @@ If you prefer not to use Tailwind CSS:
 
 1. Replace the Tailwind import in `src/styles.css` with your own styles
 2. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-3. Uninstall the packages: `pnpm add @tailwindcss/vite tailwindcss --dev`
+3. Uninstall the packages: `pnpm remove @tailwindcss/vite tailwindcss`
 
 ## Linting & Formatting
 
