@@ -1,0 +1,47 @@
+---
+slug: building-barox-dev
+title: Building barox.dev, Kicking Off the Journal
+date: 2026-07-14
+tags: [meta, tanstack-start]
+published: true
+---
+
+This is the first entry in the journal, and fittingly it's about the site
+itself. I'm building barox.dev on TanStack Start, mostly to practice writing
+and to have somewhere to put lessons learned as I go.
+
+## Why a content pipeline first
+
+Before any page renders a single post, there needs to be a trustworthy way to
+turn an MDX file into something the rest of the site can rely on.
+<Sidenote>That's the whole point of the content pipeline: parse once,
+validate hard, and let every downstream page trust the shape of a Post.</Sidenote>
+Frontmatter gets validated with a schema, so a typo'd date or a missing tag
+fails immediately instead of turning into a broken page three routes later.
+
+Here's the rough shape of a parsed post:
+
+```ts
+interface Post {
+  slug: string
+  title: string
+  date: Date
+  tags: string[]
+  published: boolean
+  compiledSource: string
+}
+```
+
+## Images get a placement, not just a src
+
+<Image variant="right" src="/images/placeholder-diagram.svg" alt="A placeholder diagram" />
+
+A right-variant image like this one is meant to bleed into the same margin
+column the sidenotes use.
+
+<Image variant="full" src="/images/placeholder-wide.svg" alt="A placeholder wide diagram" />
+
+A full-variant image breaks out to the entire content width, for anything
+that needs to be legible rather than decorative.
+
+More soon.
