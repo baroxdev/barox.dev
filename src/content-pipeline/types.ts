@@ -7,6 +7,7 @@ export interface Post {
   tags: string[]
   published: boolean
   compiledSource: string
+  excerpt: string
 }
 
 export interface JournalIndexEntry {

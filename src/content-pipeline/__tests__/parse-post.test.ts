@@ -25,6 +25,7 @@ describe('parsePost', () => {
     expect(post.published).toBe(true)
     expect(typeof post.compiledSource).toBe('string')
     expect(post.compiledSource.length).toBeGreaterThan(0)
+    expect(post.excerpt).toBe('Hello world.')
   })
 
   it('fails fast with a clear validation error when a required field is missing', () => {

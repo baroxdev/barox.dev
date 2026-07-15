@@ -12,6 +12,7 @@ export function makePost(overrides: Partial<Post> = {}): Post {
     tags: [],
     published: true,
     compiledSource: '',
+    excerpt: `Excerpt for test post ${counter}.`,
     ...overrides,
   }
 }

@@ -1,5 +1,6 @@
 import matter from 'gray-matter'
 import { compileSync } from '@mdx-js/mdx'
+import { deriveExcerpt } from './derive-excerpt.ts'
 import { PostValidationError } from './errors.ts'
 import { postFrontmatterSchema } from './post-frontmatter-schema.ts'
 import { remarkResolveContentMarkers } from './remark-resolve-content-markers.ts'
@@ -32,5 +33,6 @@ export function parsePost(raw: string): Post {
   return {
     ...result.data,
     compiledSource: String(compiled),
+    excerpt: deriveExcerpt(body),
   }
 }
