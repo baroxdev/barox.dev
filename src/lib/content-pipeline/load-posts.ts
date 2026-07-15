@@ -7,7 +7,7 @@ import type { Post } from './types.ts'
  * node:fs isn't available there.
  */
 const journalSources = import.meta.glob<string>(
-  '../../content/journal/*.mdx',
+  '../../../content/journal/*.mdx',
   { eager: true, query: '?raw', import: 'default' },
 )
 

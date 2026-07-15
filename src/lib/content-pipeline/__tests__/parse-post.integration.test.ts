@@ -7,7 +7,10 @@ import { deriveTagIndex } from '../derive-tag-index.ts'
 import { parsePost } from '../parse-post.ts'
 
 const firstPostPath = fileURLToPath(
-  new URL('../../../content/journal/building-barox-dev.mdx', import.meta.url),
+  new URL(
+    '../../../../content/journal/building-barox-dev.mdx',
+    import.meta.url,
+  ),
 )
 
 describe('parsePost against a real post file', () => {

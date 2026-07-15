@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest'
 import { Home } from '../routes/index.tsx'
-import { latestPostsQueryOptions } from '../latest-posts.ts'
+import { latestPostsQueryOptions } from '../services/posts.ts'
 
 interface LatestPost {
   slug: string

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { latestPostsQueryOptions } from '../latest-posts.ts'
+import { latestPostsQueryOptions } from '../services/posts.ts'
 
 export const Route = createFileRoute('/')({
   loader: ({ context }) =>
