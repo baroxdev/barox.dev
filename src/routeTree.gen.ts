@@ -13,6 +13,8 @@ import { Route as JournalRouteImport } from './routes/journal'
 import { Route as CvRouteImport } from './routes/cv'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JournalSlugRouteImport } from './routes/journal_.$slug'
+import { Route as JournalTagsTagRouteImport } from './routes/journal_.tags.$tag'
 
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
@@ -34,18 +36,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JournalSlugRoute = JournalSlugRouteImport.update({
+  id: '/journal_/$slug',
+  path: '/journal/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalTagsTagRoute = JournalTagsTagRouteImport.update({
+  id: '/journal_/tags/$tag',
+  path: '/journal/tags/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/journal/$slug': typeof JournalSlugRoute
+  '/journal/tags/$tag': typeof JournalTagsTagRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/journal/$slug': typeof JournalSlugRoute
+  '/journal/tags/$tag': typeof JournalTagsTagRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,34 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/journal_/$slug': typeof JournalSlugRoute
+  '/journal_/tags/$tag': typeof JournalTagsTagRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/cv' | '/journal'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/cv'
+    | '/journal'
+    | '/journal/$slug'
+    | '/journal/tags/$tag'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/cv' | '/journal'
-  id: '__root__' | '/' | '/about' | '/cv' | '/journal'
+  to:
+    | '/'
+    | '/about'
+    | '/cv'
+    | '/journal'
+    | '/journal/$slug'
+    | '/journal/tags/$tag'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/cv'
+    | '/journal'
+    | '/journal_/$slug'
+    | '/journal_/tags/$tag'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +104,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   CvRoute: typeof CvRoute
   JournalRoute: typeof JournalRoute
+  JournalSlugRoute: typeof JournalSlugRoute
+  JournalTagsTagRoute: typeof JournalTagsTagRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +138,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journal_/$slug': {
+      id: '/journal_/$slug'
+      path: '/journal/$slug'
+      fullPath: '/journal/$slug'
+      preLoaderRoute: typeof JournalSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal_/tags/$tag': {
+      id: '/journal_/tags/$tag'
+      path: '/journal/tags/$tag'
+      fullPath: '/journal/tags/$tag'
+      preLoaderRoute: typeof JournalTagsTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +160,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   CvRoute: CvRoute,
   JournalRoute: JournalRoute,
+  JournalSlugRoute: JournalSlugRoute,
+  JournalTagsTagRoute: JournalTagsTagRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
