@@ -1,8 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { latestPostsQueryOptions } from '../services/posts.ts'
+import { buildPageHead } from '../lib/seo/page-head.ts'
 
 export const Route = createFileRoute('/')({
+  head: () =>
+    buildPageHead({
+      title: 'barox.dev — Notes from building software',
+      description:
+        "Barox's journal on software engineering, systems, and whatever he's deep in at the moment.",
+      path: '/',
+    }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(latestPostsQueryOptions()),
   component: Home,

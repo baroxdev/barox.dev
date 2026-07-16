@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { journalIndexQueryOptions } from '../services/posts.ts'
+import { buildPageHead } from '../lib/seo/page-head.ts'
 
 export const Route = createFileRoute('/journal')({
+  head: () =>
+    buildPageHead({
+      title: 'Journal — barox.dev',
+      description:
+        "Chronological journal of Barox's software engineering notes and lessons learned.",
+      path: '/journal',
+    }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(journalIndexQueryOptions()),
   component: Journal,
