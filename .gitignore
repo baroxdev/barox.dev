@@ -14,5 +14,7 @@ dist-ssr
 coverage
 __unconfig*
 todos.json
+test-results
+playwright-report
 
 .claude/settings.local.json
