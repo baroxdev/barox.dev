@@ -59,6 +59,15 @@
   --color-border: #3a362f;
 }
 
+/* Shared post-page layout geometry. --margin-col/--margin-gap are the same
+   right-margin column both the Sidenote component (#8) and the Image
+   right-variant (#9) bleed into, so the two features always line up. */
+:root {
+  --content-col: 48rem;
+  --margin-col: 14rem;
+  --margin-gap: 2rem;
+}
+
 /* Retarget @tailwindcss/typography's palette at this design system's own
    tokens instead of its stock gray scale. These variables already flip
    under .dark via the token redefinitions above, so — like every other
@@ -216,4 +225,89 @@ kbd {
   overflow-x: auto;
   padding: 1rem;
   font-size: 0.9em;
+}
+
+/* Post page layout: at lg+ the outer container grows to make room for a
+   right margin column (sidenotes, right-variant images), while its direct
+   children keep the original 48rem text-column width and stay pinned to
+   the left edge — leaving all the extra width as reserved space on the
+   right, not split evenly by centering. */
+@media (min-width: 1024px) {
+  .journal-layout {
+    max-width: calc(var(--content-col) + var(--margin-gap) + var(--margin-col));
+  }
+
+  .journal-layout > header,
+  .journal-layout > .prose-with-sidenotes {
+    max-width: var(--content-col);
+  }
+}
+
+/* Sidenote (#8): counter-based auto-numbering, scoped to one post so
+   numbering restarts per page. */
+.prose-with-sidenotes {
+  counter-reset: sidenote;
+}
+
+.sidenote-marker {
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: super;
+  margin-left: 0.15em;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--color-accent);
+  user-select: none;
+}
+
+.sidenote-marker::before {
+  counter-increment: sidenote;
+  content: counter(sidenote);
+}
+
+/* Checkbox-hack toggle: no JS state, just a hidden checkbox + label + a
+   `:checked` sibling selector. Mobile-only — the lg+ override below makes
+   the content always-visible regardless of checked state. */
+.sidenote-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.sidenote-content {
+  display: none;
+  margin: 0.5rem 0;
+  border-left: 2px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.sidenote-toggle:checked ~ .sidenote-content {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .sidenote-marker {
+    cursor: default;
+  }
+
+  /* Floats naturally stack without overlapping when several occur close
+     together in the flow (each is placed no higher than the bottom of the
+     prior one on the same side) — this is what satisfies "multiple
+     sidenotes render without colliding" with no JS collision detection. */
+  .sidenote-content {
+    display: block;
+    float: right;
+    clear: right;
+    position: relative;
+    width: var(--margin-col);
+    margin-right: calc(-1 * (var(--margin-gap) + var(--margin-col)));
+    margin-top: 0.1rem;
+    margin-bottom: 0.75rem;
+    border-left: none;
+    padding: 0;
+  }
 }

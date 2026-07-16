@@ -69,7 +69,7 @@ function Post() {
   if (!post || !MDXContent) return null
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         <h1 className="text-3xl font-bold text-ink">{post.title}</h1>
         <p className="mt-2 text-sm text-ink-muted">
@@ -92,7 +92,7 @@ function Post() {
         )}
       </header>
 
-      <div className="prose prose-lg mt-10 max-w-none">
+      <div className="prose prose-lg prose-with-sidenotes mt-10 max-w-none">
         <MDXContent components={MDX_COMPONENTS} />
       </div>
     </main>
