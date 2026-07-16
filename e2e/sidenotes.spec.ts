@@ -30,6 +30,12 @@ test.describe('sidenotes on desktop', () => {
     // first one ends.
     expect(secondBox.y).toBeGreaterThanOrEqual(firstBox.y + firstBox.height - 1)
   })
+
+  test('does not show the mobile-only numbered marker', async ({ page }) => {
+    await page.goto('/journal/building-barox-dev')
+
+    await expect(page.locator('.sidenote-marker').first()).toBeHidden()
+  })
 })
 
 test.describe('sidenotes on mobile', () => {
