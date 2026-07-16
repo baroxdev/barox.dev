@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { loadPosts } from '../load-posts.ts'
+import { publishedSortedDesc } from '../published-sorted-posts.ts'
 
 function rawPost(frontmatter: string) {
   return `---\n${frontmatter}\n---\n\nSome body text.\n`
@@ -40,6 +41,16 @@ describe('loadPosts', () => {
     const posts = await loadPosts()
 
     expect(posts.map((post) => post.slug)).toContain('building-barox-dev')
+  })
+
+  it('finds no match for an unknown slug against the real bundled content — the exact lookup getPost (services/posts.ts) performs internally, which cannot be exercised through its createServerFn wrapper outside a real request', async () => {
+    const posts = await loadPosts()
+
+    const match = publishedSortedDesc(posts).find(
+      (candidate) => candidate.slug === 'this-slug-does-not-exist',
+    )
+
+    expect(match).toBeUndefined()
   })
 
   it('memoizes the default (no-argument) call so parsing only happens once', async () => {

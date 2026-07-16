@@ -39,7 +39,7 @@ function runTransformer(title: string | undefined): Root {
 }
 
 describe('codeFigureTransformer', () => {
-  it('always wraps the highlighted output in a data-rehype-pretty-code-figure figure', () => {
+  it('always wraps the highlighted output in a data-code-figure figure', () => {
     const result = runTransformer(undefined)
 
     expect(result.children).toHaveLength(1)
@@ -47,7 +47,7 @@ describe('codeFigureTransformer', () => {
     expect(figure).toMatchObject({
       type: 'element',
       tagName: 'figure',
-      properties: { 'data-rehype-pretty-code-figure': '' },
+      properties: { 'data-code-figure': '' },
     })
   })
 
@@ -60,7 +60,7 @@ describe('codeFigureTransformer', () => {
     expect(figure.children).toEqual([stubPre])
   })
 
-  it('adds a data-rehype-pretty-code-title figcaption when a title is present', () => {
+  it('adds a data-code-title figcaption when a title is present', () => {
     const result = runTransformer('example.ts')
     const figure = result.children[0] as Root['children'][number] & {
       children: Root['children']
@@ -69,7 +69,7 @@ describe('codeFigureTransformer', () => {
     expect(figure.children[0]).toMatchObject({
       type: 'element',
       tagName: 'figcaption',
-      properties: { 'data-rehype-pretty-code-title': '' },
+      properties: { 'data-code-title': '' },
       children: [{ type: 'text', value: 'example.ts' }],
     })
     expect(figure.children[1]).toBe(stubPre)

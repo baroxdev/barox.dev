@@ -9,7 +9,7 @@ const COPIED_RESET_MS = 1500
  * both the optional title (a sibling `<figcaption>`) and the highlighted
  * `<pre>` are reachable together (see shiki-code-figure.ts). Only adds the
  * copy button when the figure actually came from that code-block wrapper
- * (`data-rehype-pretty-code-figure`); any other `<figure>` a post uses (e.g.
+ * (`data-code-figure`); any other `<figure>` a post uses (e.g.
  * an image caption) renders untouched. Chrome/title styling is CSS only
  * (see styles.css); this component only owns the copy button, the one
  * interactive/stateful piece of the post body.
@@ -28,7 +28,7 @@ export function CodeBlock({
     setTimeout(() => setCopied(false), COPIED_RESET_MS)
   }
 
-  if (!('data-rehype-pretty-code-figure' in props)) {
+  if (!('data-code-figure' in props)) {
     return <figure {...props}>{children}</figure>
   }
 

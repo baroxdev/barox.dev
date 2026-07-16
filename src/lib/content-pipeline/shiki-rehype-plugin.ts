@@ -44,7 +44,7 @@ function getScopedHighlighter() {
 }
 
 /**
- * Rehype plugin factory: registered in vite.config.ts's @mdx-js/rollup
+ * Rehype plugin factory: registered in vite-mdx-plugin.ts's custom Vite
  * plugin, so highlighting happens once at build time as part of compiling
  * content/journal/*.mdx into real components — not at request time (see
  * compiled-posts.ts). MDX content can't be rendered via @mdx-js/mdx's

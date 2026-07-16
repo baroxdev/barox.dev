@@ -52,8 +52,8 @@ describe('Post', () => {
   it('renders the highlighted, titled code block', async () => {
     const html = await renderPost('building-barox-dev', REAL_POST_METADATA)
 
-    expect(html).toContain('data-rehype-pretty-code-figure')
-    expect(html).toContain('data-rehype-pretty-code-title')
+    expect(html).toContain('data-code-figure')
+    expect(html).toContain('data-code-title')
     expect(html).toContain('types.ts')
   })
 

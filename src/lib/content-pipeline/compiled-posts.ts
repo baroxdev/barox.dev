@@ -1,8 +1,8 @@
 import type { MDXContent } from 'mdx/types'
 
 /**
- * Compiled at build time by the @mdx-js/rollup Vite plugin (vite.config.ts,
- * same remark/Shiki config parsePost's validation-only compile uses) — not
+ * Compiled at build time by the custom Vite plugin in vite-mdx-plugin.ts
+ * (same remark/Shiki config parsePost's validation-only compile uses) — not
  * at request time. Cloudflare Workers' isolate sandbox disallows the
  * `new Function()` call @mdx-js/mdx's runSync/run use internally (a
  * platform security boundary, not a config option), so MDX can't be

@@ -175,34 +175,34 @@ kbd {
    --shiki-light/--shiki-dark/--shiki-*-bg custom properties per element —
    never color/background-color directly — so without these rules
    highlighted code renders with no syntax color at all. */
-[data-rehype-pretty-code-figure] pre {
+[data-code-figure] pre {
   color: var(--shiki-light);
   background-color: var(--shiki-light-bg);
 }
 
-[data-rehype-pretty-code-figure] pre span {
+[data-code-figure] pre span {
   color: var(--shiki-light);
 }
 
-.dark [data-rehype-pretty-code-figure] pre {
+.dark [data-code-figure] pre {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
 }
 
-.dark [data-rehype-pretty-code-figure] pre span {
+.dark [data-code-figure] pre span {
   color: var(--shiki-dark);
 }
 
 /* Frame chrome: bordered figure, optional title bar (only rendered by
    shiki-code-figure.ts when a fence has title="..."), scrollable code body. */
-[data-rehype-pretty-code-figure] {
+[data-code-figure] {
   margin: 1.5em 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 0.5rem;
 }
 
-[data-rehype-pretty-code-title] {
+[data-code-title] {
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-border);
   padding: 0.5rem 1rem;
@@ -211,7 +211,7 @@ kbd {
   color: var(--color-ink-muted);
 }
 
-[data-rehype-pretty-code-figure] pre {
+[data-code-figure] pre {
   margin: 0;
   overflow-x: auto;
   padding: 1rem;

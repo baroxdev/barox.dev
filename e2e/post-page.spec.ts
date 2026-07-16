@@ -18,8 +18,21 @@ test('a sample post with code blocks renders without error', async ({
     }),
   ).toBeVisible()
 
+  await expect(page.locator('[data-code-figure]').first()).toBeVisible()
+
+  expect(errors).toEqual([])
+})
+
+test('an unknown slug shows the not-found page instead of crashing', async ({
+  page,
+}) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+
+  await page.goto('/journal/this-post-does-not-exist')
+
   await expect(
-    page.locator('[data-rehype-pretty-code-figure]').first(),
+    page.getByRole('heading', { name: 'Post not found' }),
   ).toBeVisible()
 
   expect(errors).toEqual([])

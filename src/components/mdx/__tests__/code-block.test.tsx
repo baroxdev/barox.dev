@@ -11,8 +11,8 @@ import { CodeBlock } from '../code-block.tsx'
 
 function renderCodeBlock() {
   return render(
-    <CodeBlock data-rehype-pretty-code-figure="">
-      <figcaption data-rehype-pretty-code-title="">example.ts</figcaption>
+    <CodeBlock data-code-figure="">
+      <figcaption data-code-title="">example.ts</figcaption>
       <pre>
         <code>const x = 1</code>
       </pre>

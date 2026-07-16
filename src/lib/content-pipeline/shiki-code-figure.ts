@@ -9,8 +9,8 @@ export function parseCodeFenceMeta(metaString: string): { title?: string } {
 }
 
 /**
- * Wraps every highlighted code block in a `<figure data-rehype-pretty-code-figure>`
- * — with a `<figcaption data-rehype-pretty-code-title>` sibling only when a
+ * Wraps every highlighted code block in a `<figure data-code-figure>`
+ * — with a `<figcaption data-code-title>` sibling only when a
  * title is present — so CodeBlock (src/components/mdx/code-block.tsx) always
  * has a single, uniform element to intercept and add chrome/copy behavior to,
  * matching the shape the (bundle-bloating, since-removed) rehype-pretty-code
@@ -27,14 +27,14 @@ export const codeFigureTransformer: ShikiTransformer = {
         {
           type: 'element',
           tagName: 'figure',
-          properties: { 'data-rehype-pretty-code-figure': '' },
+          properties: { 'data-code-figure': '' },
           children: [
             ...(title
               ? [
                   {
                     type: 'element' as const,
                     tagName: 'figcaption',
-                    properties: { 'data-rehype-pretty-code-title': '' },
+                    properties: { 'data-code-title': '' },
                     children: [{ type: 'text' as const, value: title }],
                   },
                 ]

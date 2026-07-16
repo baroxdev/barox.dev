@@ -21,8 +21,8 @@ function formatZodMessage(error: {
  * remarkResolveContentMarkers's fail-fast Sidenote/Image validation with a
  * clear PostValidationError, independent of the framework. The actual
  * MDX-to-component compilation used for rendering happens separately, at
- * build time, via the @mdx-js/rollup Vite plugin (vite.config.ts) — not
- * here, and not at request time (see compiled-posts.ts for why).
+ * build time, via the custom Vite plugin in vite-mdx-plugin.ts — not here,
+ * and not at request time (see compiled-posts.ts for why).
  */
 export async function parsePost(raw: string): Promise<Post> {
   const { data: frontmatter, content: body } = matter(raw)

@@ -9,7 +9,13 @@ const PORT = 4317
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  // Only one webServer instance is shared across every test here — Vite's
+  // dev-mode on-demand compilation doesn't handle concurrent cold requests
+  // well, so parallel workers can abort each other's navigations. This
+  // suite is a handful of smoke tests, not a large one; correctness matters
+  // more than parallel speed here.
+  fullyParallel: false,
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   use: {
     baseURL: `http://localhost:${PORT}`,
