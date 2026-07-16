@@ -227,22 +227,6 @@ kbd {
   font-size: 0.9em;
 }
 
-/* Post page layout: at lg+ the outer container grows to make room for a
-   right margin column (sidenotes, right-variant images), while its direct
-   children keep the original 48rem text-column width and stay pinned to
-   the left edge — leaving all the extra width as reserved space on the
-   right, not split evenly by centering. */
-@media (min-width: 1024px) {
-  .journal-layout {
-    max-width: calc(var(--content-col) + var(--margin-gap) + var(--margin-col));
-  }
-
-  .journal-layout > header,
-  .journal-layout > .prose-with-sidenotes {
-    max-width: var(--content-col);
-  }
-}
-
 /* Sidenote (#8): counter-based auto-numbering, scoped to one post so
    numbering restarts per page. */
 .prose-with-sidenotes {
@@ -266,8 +250,8 @@ kbd {
 }
 
 /* Checkbox-hack toggle: no JS state, just a hidden checkbox + label + a
-   `:checked` sibling selector. Mobile-only — the lg+ override below makes
-   the content always-visible regardless of checked state. */
+   `:checked` sibling selector. Mobile-only — the lg+ block below makes the
+   content always-visible regardless of checked state. */
 .sidenote-toggle {
   position: absolute;
   width: 1px;
@@ -289,7 +273,25 @@ kbd {
   display: block;
 }
 
+/* One shared lg+ breakpoint (1024px, matching Tailwind's `lg`) for both the
+   post-page layout widening and the sidenote desktop overrides — kept as a
+   single media block rather than two, so the value only needs to change in
+   one place. */
 @media (min-width: 1024px) {
+  /* The outer container grows to make room for a right margin column
+     (sidenotes, right-variant images), while its direct children keep the
+     original 48rem text-column width and stay pinned to the left edge —
+     leaving all the extra width as reserved space on the right, not split
+     evenly by centering. */
+  .journal-layout {
+    max-width: calc(var(--content-col) + var(--margin-gap) + var(--margin-col));
+  }
+
+  .journal-layout > header,
+  .journal-layout > .prose-with-sidenotes {
+    max-width: var(--content-col);
+  }
+
   .sidenote-marker {
     cursor: default;
   }
