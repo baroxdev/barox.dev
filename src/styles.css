@@ -1,10 +1,11 @@
-@import "tailwindcss";
-@import "@fontsource/fira-sans/400.css";
-@import "@fontsource/fira-sans/500.css";
-@import "@fontsource/fira-sans/600.css";
-@import "@fontsource/fira-sans/700.css";
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 
 /* Class-based dark mode: toggled via the .dark class on <html>,
    driven by src/theme/ (see src/theme/theme.ts). The 'dark' class name
@@ -15,8 +16,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* Single source of truth for color tokens. Dark-mode values below
      override these same custom properties under .dark — components never
@@ -56,6 +57,28 @@
   --color-ink-muted: #a8a296;
   --color-accent: #7fa8d9;
   --color-border: #3a362f;
+}
+
+/* Retarget @tailwindcss/typography's palette at this design system's own
+   tokens instead of its stock gray scale. These variables already flip
+   under .dark via the token redefinitions above, so — like every other
+   component here — prose content never needs a separate dark: variant or
+   prose-invert. */
+.prose {
+  --tw-prose-body: var(--color-ink);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-ink-muted);
+  --tw-prose-links: var(--color-accent);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-ink-muted);
+  --tw-prose-bullets: var(--color-border);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-ink-muted);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
 }
 
 * {
@@ -145,4 +168,52 @@ kbd {
     -webkit-mask-size: 14px 6px;
     mask-size: 14px 6px;
   }
+}
+
+/* Shiki (parsePost, content-pipeline, via shiki-code-figure.ts) is
+   configured with defaultColor: false, so it only declares
+   --shiki-light/--shiki-dark/--shiki-*-bg custom properties per element —
+   never color/background-color directly — so without these rules
+   highlighted code renders with no syntax color at all. */
+[data-code-figure] pre {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-code-figure] pre span {
+  color: var(--shiki-light);
+}
+
+.dark [data-code-figure] pre {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+.dark [data-code-figure] pre span {
+  color: var(--shiki-dark);
+}
+
+/* Frame chrome: bordered figure, optional title bar (only rendered by
+   shiki-code-figure.ts when a fence has title="..."), scrollable code body. */
+[data-code-figure] {
+  margin: 1.5em 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+[data-code-title] {
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-border);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+[data-code-figure] pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 1rem;
+  font-size: 0.9em;
 }

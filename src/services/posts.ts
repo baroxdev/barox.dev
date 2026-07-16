@@ -6,9 +6,18 @@ import {
   loadPosts,
   publishedSortedDesc,
 } from '../lib/content-pipeline/index.ts'
+import { queryKeysFactory } from './query-keys-factory.ts'
 
 /** How many recent posts the homepage shows. */
 const HOME_POST_COUNT = 5
+
+type PostsListVariant = { variant: 'latest' } | { variant: 'journal-index' }
+
+const postsKeys = queryKeysFactory<'posts', PostsListVariant, string>('posts')
+
+function toIsoDateString(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
 
 const latestPostSchema = z.object({
   slug: z.string().min(1),
@@ -19,14 +28,14 @@ const latestPostSchema = z.object({
 
 const latestPostsSchema = z.array(latestPostSchema)
 
-const getLatestPosts = createServerFn({ method: 'GET' }).handler(() => {
-  const posts = publishedSortedDesc(loadPosts()).slice(0, HOME_POST_COUNT)
+const getLatestPosts = createServerFn({ method: 'GET' }).handler(async () => {
+  const posts = publishedSortedDesc(await loadPosts()).slice(0, HOME_POST_COUNT)
 
   return latestPostsSchema.parse(
     posts.map((post) => ({
       slug: post.slug,
       title: post.title,
-      date: post.date.toISOString().slice(0, 10),
+      date: toIsoDateString(post.date),
       excerpt: post.excerpt,
     })),
   )
@@ -34,7 +43,7 @@ const getLatestPosts = createServerFn({ method: 'GET' }).handler(() => {
 
 export const latestPostsQueryOptions = () =>
   queryOptions({
-    queryKey: ['latest-posts'],
+    queryKey: postsKeys.list({ variant: 'latest' }),
     queryFn: () => getLatestPosts(),
   })
 
@@ -47,14 +56,14 @@ const journalIndexEntrySchema = z.object({
 
 const journalIndexSchema = z.array(journalIndexEntrySchema)
 
-const getJournalIndex = createServerFn({ method: 'GET' }).handler(() => {
-  const entries = deriveJournalIndex(loadPosts())
+const getJournalIndex = createServerFn({ method: 'GET' }).handler(async () => {
+  const entries = deriveJournalIndex(await loadPosts())
 
   return journalIndexSchema.parse(
     entries.map((entry) => ({
       slug: entry.slug,
       title: entry.title,
-      date: entry.date.toISOString().slice(0, 10),
+      date: toIsoDateString(entry.date),
       tags: entry.tags,
     })),
   )
@@ -62,6 +71,40 @@ const getJournalIndex = createServerFn({ method: 'GET' }).handler(() => {
 
 export const journalIndexQueryOptions = () =>
   queryOptions({
-    queryKey: ['journal-index'],
+    queryKey: postsKeys.list({ variant: 'journal-index' }),
     queryFn: () => getJournalIndex(),
+  })
+
+const postSchema = z.object({
+  slug: z.string().min(1),
+  title: z.string().min(1),
+  date: z.iso.date(),
+  tags: z.array(z.string().min(1)),
+})
+
+const postOrNullSchema = postSchema.nullable()
+
+export type PostDetail = z.infer<typeof postSchema>
+
+const getPost = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data }) => {
+    const post = publishedSortedDesc(await loadPosts()).find(
+      (candidate) => candidate.slug === data.slug,
+    )
+
+    if (!post) return postOrNullSchema.parse(null)
+
+    return postOrNullSchema.parse({
+      slug: post.slug,
+      title: post.title,
+      date: toIsoDateString(post.date),
+      tags: post.tags,
+    })
+  })
+
+export const postQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: postsKeys.detail(slug),
+    queryFn: () => getPost({ data: { slug } }),
   })
