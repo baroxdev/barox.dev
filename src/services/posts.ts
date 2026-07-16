@@ -5,6 +5,7 @@ import {
   deriveJournalIndex,
   loadPosts,
   publishedSortedDesc,
+  toIsoDateString,
 } from '../lib/content-pipeline/index.ts'
 import { queryKeysFactory } from './query-keys-factory.ts'
 
@@ -14,10 +15,6 @@ const HOME_POST_COUNT = 5
 type PostsListVariant = { variant: 'latest' } | { variant: 'journal-index' }
 
 const postsKeys = queryKeysFactory<'posts', PostsListVariant, string>('posts')
-
-function toIsoDateString(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
 
 const latestPostSchema = z.object({
   slug: z.string().min(1),
@@ -80,6 +77,7 @@ const postSchema = z.object({
   title: z.string().min(1),
   date: z.iso.date(),
   tags: z.array(z.string().min(1)),
+  excerpt: z.string().min(1),
 })
 
 const postOrNullSchema = postSchema.nullable()
@@ -100,6 +98,7 @@ const getPost = createServerFn({ method: 'GET' })
       title: post.title,
       date: toIsoDateString(post.date),
       tags: post.tags,
+      excerpt: post.excerpt,
     })
   })
 

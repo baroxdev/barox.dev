@@ -26,6 +26,7 @@ const REAL_POST_METADATA: PostDetail = {
   title: 'Building barox.dev, Kicking Off the Journal',
   date: '2026-07-14',
   tags: ['meta', 'tanstack-start'],
+  excerpt: 'This is the first entry in the journal.',
 }
 
 describe('Post', () => {

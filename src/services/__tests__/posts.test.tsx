@@ -134,6 +134,7 @@ describe('postQueryOptions', () => {
       title: 'A Post',
       date: '2026-01-01',
       tags: ['career', 'system-design'],
+      excerpt: 'An excerpt.',
     }
     queryClient.setQueryData(postQueryOptions('a-post').queryKey, post)
 
