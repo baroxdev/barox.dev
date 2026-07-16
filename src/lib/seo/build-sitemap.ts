@@ -1,14 +1,10 @@
-import { SITE_URL } from './site-url.ts'
+import { absoluteUrl } from './site-url.ts'
 
 export interface SitemapEntry {
   /** Site-relative path, e.g. "/journal/my-post" or "/" for the home page. */
   path: string
   /** ISO "YYYY-MM-DD" date, e.g. a post's publish date. */
   lastmod?: string
-}
-
-function absoluteUrl(path: string): string {
-  return path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`
 }
 
 function buildUrlEntry(entry: SitemapEntry): string {

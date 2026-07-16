@@ -1,4 +1,4 @@
-import { SITE_NAME, SITE_URL } from './site-url.ts'
+import { SITE_NAME, absoluteUrl } from './site-url.ts'
 
 export interface PageHeadOptions {
   title: string
@@ -9,10 +9,6 @@ export interface PageHeadOptions {
   type?: 'website' | 'article'
   /** JSON-LD structured data (e.g. a schema.org Article), for post pages. */
   jsonLd?: Record<string, unknown>
-}
-
-function absoluteUrl(path: string): string {
-  return path === '/' ? SITE_URL : `${SITE_URL}${path}`
 }
 
 /**
