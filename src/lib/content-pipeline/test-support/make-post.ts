@@ -11,7 +11,6 @@ export function makePost(overrides: Partial<Post> = {}): Post {
     date: new Date('2026-01-01'),
     tags: [],
     published: true,
-    compiledSource: '',
     excerpt: `Excerpt for test post ${counter}.`,
     ...overrides,
   }

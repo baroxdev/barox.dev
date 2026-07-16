@@ -14,17 +14,16 @@ const firstPostPath = fileURLToPath(
 )
 
 describe('parsePost against a real post file', () => {
-  it('parses the first journal post end to end', () => {
+  it('parses the first journal post end to end', async () => {
     const raw = readFileSync(firstPostPath, 'utf-8')
 
-    const post = parsePost(raw)
+    const post = await parsePost(raw)
 
     expect(post.slug).toBe('building-barox-dev')
     expect(post.title).toBe('Building barox.dev, Kicking Off the Journal')
     expect(post.date).toEqual(new Date('2026-07-14'))
     expect(post.tags).toEqual(['meta', 'tanstack-start'])
     expect(post.published).toBe(true)
-    expect(post.compiledSource.length).toBeGreaterThan(0)
     expect(
       post.excerpt.startsWith('This is the first entry in the journal'),
     ).toBe(true)
@@ -32,9 +31,9 @@ describe('parsePost against a real post file', () => {
     expect(post.excerpt.length).toBeLessThanOrEqual(201)
   })
 
-  it('flows through the derived collections', () => {
+  it('flows through the derived collections', async () => {
     const raw = readFileSync(firstPostPath, 'utf-8')
-    const post = parsePost(raw)
+    const post = await parsePost(raw)
 
     expect(deriveJournalIndex([post])).toEqual([
       {

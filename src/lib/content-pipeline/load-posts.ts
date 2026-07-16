@@ -11,9 +11,23 @@ const journalSources = import.meta.glob<string>(
   { eager: true, query: '?raw', import: 'default' },
 )
 
+function parseAll(sources: Record<string, string>): Promise<Post[]> {
+  return Promise.all(Object.values(sources).map((raw) => parsePost(raw)))
+}
+
+/**
+ * Memoized for the default (bundled content) call path only — content never
+ * changes at runtime, so there's no reason to re-parse/re-validate/re-compile
+ * (for remarkResolveContentMarkers's fail-fast checks) on every request.
+ * Test callers that pass an explicit `sources` map bypass the cache
+ * entirely.
+ */
+let cachedDefaultPosts: Promise<Post[]> | undefined
+
 /** Parses every MDX source in a slug-to-raw-content map into Posts. */
-export function loadPosts(
-  sources: Record<string, string> = journalSources,
-): Post[] {
-  return Object.values(sources).map((raw) => parsePost(raw))
+export function loadPosts(sources?: Record<string, string>): Promise<Post[]> {
+  if (sources !== undefined) return parseAll(sources)
+
+  cachedDefaultPosts ??= parseAll(journalSources)
+  return cachedDefaultPosts
 }

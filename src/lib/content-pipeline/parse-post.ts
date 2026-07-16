@@ -1,5 +1,5 @@
 import matter from 'gray-matter'
-import { compileSync } from '@mdx-js/mdx'
+import { compile } from '@mdx-js/mdx'
 import { deriveExcerpt } from './derive-excerpt.ts'
 import { PostValidationError } from './errors.ts'
 import { postFrontmatterSchema } from './post-frontmatter-schema.ts'
@@ -14,8 +14,17 @@ function formatZodMessage(error: {
     .join('; ')
 }
 
-/** Parses raw MDX post source into a validated Post domain object. */
-export function parsePost(raw: string): Post {
+/**
+ * Parses raw MDX post source into a validated Post domain object.
+ *
+ * Compiles the body (discarding the result) purely to run
+ * remarkResolveContentMarkers's fail-fast Sidenote/Image validation with a
+ * clear PostValidationError, independent of the framework. The actual
+ * MDX-to-component compilation used for rendering happens separately, at
+ * build time, via the @mdx-js/rollup Vite plugin (vite.config.ts) — not
+ * here, and not at request time (see compiled-posts.ts for why).
+ */
+export async function parsePost(raw: string): Promise<Post> {
   const { data: frontmatter, content: body } = matter(raw)
 
   const result = postFrontmatterSchema.safeParse(frontmatter)
@@ -25,14 +34,13 @@ export function parsePost(raw: string): Post {
     )
   }
 
-  const compiled = compileSync(body, {
+  await compile(body, {
     outputFormat: 'function-body',
     remarkPlugins: [remarkResolveContentMarkers],
   })
 
   return {
     ...result.data,
-    compiledSource: String(compiled),
     excerpt: deriveExcerpt(body),
   }
 }

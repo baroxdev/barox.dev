@@ -6,7 +6,6 @@ export interface Post {
   date: Date
   tags: string[]
   published: boolean
-  compiledSource: string
   excerpt: string
 }
 
