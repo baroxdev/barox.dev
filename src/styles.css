@@ -292,8 +292,13 @@ kbd {
     max-width: var(--content-col);
   }
 
+  /* The marker is a mobile-only affordance (issue #8: "on mobile, sidenotes
+     collapse to a numbered marker"). At lg+ the note is already visible in
+     the margin, so a leftover marker in the text has no purpose — it just
+     shows up as a stray, unclickable number wherever the <Sidenote> tag
+     happens to sit in the source. */
   .sidenote-marker {
-    cursor: default;
+    display: none;
   }
 
   /* Floats naturally stack without overlapping when several occur close
