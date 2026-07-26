@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { journalIndexQueryOptions } from '../services/posts.ts'
 import { buildPageHead } from '../lib/seo/page-head.ts'
+import { PostListEntry } from '../components/post-list-entry.tsx'
 
 export const Route = createFileRoute('/journal')({
   head: () =>
@@ -15,15 +16,6 @@ export const Route = createFileRoute('/journal')({
     context.queryClient.ensureQueryData(journalIndexQueryOptions()),
   component: Journal,
 })
-
-function formatPostDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'UTC',
-  })
-}
 
 export function Journal() {
   const { data: entries } = useSuspenseQuery(journalIndexQueryOptions())
@@ -39,38 +31,7 @@ export function Journal() {
       ) : (
         <ul className="mt-10 space-y-10">
           {entries.map((entry) => (
-            <li
-              key={entry.slug}
-              className="border-b border-border pb-10 last:border-b-0 last:pb-0"
-            >
-              <h2 className="text-lg font-semibold text-ink">
-                <Link
-                  to="/journal/$slug"
-                  params={{ slug: entry.slug }}
-                  className="text-ink no-underline hover:text-accent"
-                >
-                  {entry.title}
-                </Link>
-              </h2>
-              <p className="mt-1 text-sm text-ink-muted">
-                <time dateTime={entry.date}>{formatPostDate(entry.date)}</time>
-              </p>
-              {entry.tags.length > 0 && (
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {entry.tags.map((tag) => (
-                    <li key={tag}>
-                      <Link
-                        to="/journal/tags/$tag"
-                        params={{ tag }}
-                        className="rounded-full border border-border px-2 py-0.5 text-sm text-ink-muted no-underline hover:text-accent"
-                      >
-                        {tag}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
+            <PostListEntry key={entry.slug} entry={entry} />
           ))}
         </ul>
       )}

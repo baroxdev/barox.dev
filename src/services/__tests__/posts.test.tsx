@@ -10,6 +10,7 @@ import {
   journalIndexQueryOptions,
   latestPostsQueryOptions,
   postQueryOptions,
+  tagQueryOptions,
 } from '../posts.ts'
 import type { PostDetail } from '../posts.ts'
 
@@ -165,5 +166,66 @@ describe('postQueryOptions', () => {
     )
 
     expect(html).toContain('Not found.')
+  })
+})
+
+function TagPosts({ tag }: { tag: string }) {
+  const { data } = useSuspenseQuery(tagQueryOptions(tag))
+  return (
+    <ul>
+      {data.map((entry) => (
+        <li key={entry.slug}>{entry.title}</li>
+      ))}
+    </ul>
+  )
+}
+
+describe('tagQueryOptions', () => {
+  it('has a stable, per-tag query key', () => {
+    expect(tagQueryOptions('career').queryKey).toEqual([
+      'posts',
+      'list',
+      { query: { variant: 'tag', tag: 'career' } },
+    ])
+  })
+
+  it('renders fully-resolved data with no suspense fallback once the cache is pre-populated', () => {
+    const queryClient = new QueryClient()
+
+    queryClient.setQueryData(tagQueryOptions('career').queryKey, [
+      {
+        slug: 'a-post',
+        title: 'A Post',
+        date: '2026-01-01',
+        tags: ['career'],
+      },
+    ])
+
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<p>Loading…</p>}>
+          <TagPosts tag="career" />
+        </Suspense>
+      </QueryClientProvider>,
+    )
+
+    expect(html).toContain('A Post')
+    expect(html).not.toContain('Loading…')
+  })
+
+  it('resolves to an empty list for an unknown tag rather than an error', () => {
+    const queryClient = new QueryClient()
+
+    queryClient.setQueryData(tagQueryOptions('does-not-exist').queryKey, [])
+
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<p>Loading…</p>}>
+          <TagPosts tag="does-not-exist" />
+        </Suspense>
+      </QueryClientProvider>,
+    )
+
+    expect(html).toContain('<ul></ul>')
   })
 })
