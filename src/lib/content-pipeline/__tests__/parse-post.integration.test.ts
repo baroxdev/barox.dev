@@ -29,6 +29,7 @@ describe('parsePost against a real post file', () => {
     ).toBe(true)
     expect(post.excerpt).not.toMatch(/[#<`]/)
     expect(post.excerpt.length).toBeLessThanOrEqual(201)
+    expect(post.thumbnail).toMatch(/^https:\/\/media\.barox\.dev\//)
   })
 
   it('flows through the derived collections', async () => {
@@ -41,6 +42,7 @@ describe('parsePost against a real post file', () => {
         title: 'Building barox.dev, Kicking Off the Journal',
         date: new Date('2026-07-14'),
         tags: ['meta', 'tanstack-start'],
+        thumbnail: post.thumbnail,
       },
     ])
 
