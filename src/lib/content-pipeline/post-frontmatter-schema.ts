@@ -8,6 +8,7 @@ export const postFrontmatterSchema = z.object({
   date: z.coerce.date({ error: 'date must be a valid date' }),
   tags: z.array(z.string().min(1, 'tags must not contain empty strings')),
   published: z.boolean(),
+  thumbnail: z.string().min(1, 'thumbnail must not be empty').optional(),
 })
 
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>

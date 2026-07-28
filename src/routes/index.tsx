@@ -57,6 +57,13 @@ export function Home() {
                 key={post.slug}
                 className="border-b border-border pb-10 last:border-b-0 last:pb-0"
               >
+                {post.thumbnail && (
+                  <img
+                    src={post.thumbnail}
+                    alt=""
+                    className="mb-4 h-48 w-full rounded object-cover"
+                  />
+                )}
                 <h3 className="text-lg font-semibold text-ink">{post.title}</h3>
                 <p className="mt-1 text-sm text-ink-muted">
                   <time dateTime={post.date}>{formatPostDate(post.date)}</time>

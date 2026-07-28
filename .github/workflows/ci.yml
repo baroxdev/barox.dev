@@ -30,6 +30,8 @@ jobs:
 
       - run: pnpm typecheck
 
+      - run: pnpm run sync-thumbnails:check
+
       - run: pnpm test:coverage
 
       - run: pnpm build

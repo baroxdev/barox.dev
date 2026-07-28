@@ -5,6 +5,7 @@ export interface PostListEntryData {
   title: string
   date: string
   tags: string[]
+  thumbnail?: string
 }
 
 function formatPostDate(isoDate: string): string {
@@ -19,6 +20,13 @@ function formatPostDate(isoDate: string): string {
 export function PostListEntry({ entry }: { entry: PostListEntryData }) {
   return (
     <li className="border-b border-border pb-10 last:border-b-0 last:pb-0">
+      {entry.thumbnail && (
+        <img
+          src={entry.thumbnail}
+          alt=""
+          className="mb-4 h-48 w-full rounded object-cover"
+        />
+      )}
       <h2 className="text-lg font-semibold text-ink">
         <Link
           to="/journal/$slug"
