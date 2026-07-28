@@ -1,0 +1,16 @@
+/*
+ * Component-scoped tokens: only for the couple of places where a component
+ * derives its own value from a semantic token (an opacity/hover-state
+ * variant) rather than consuming the semantic token as-is. Most components
+ * just use bg-paper/text-ink/etc. directly and don't need an entry here —
+ * that's intentional, not an oversight.
+ *
+ * Both formulas below are exactly what Tailwind's own `/NN` opacity
+ * modifier already compiles to, so switching nav-bar.tsx and
+ * theme-toggle.tsx to these tokens is a zero-visual-change rename.
+ */
+
+@theme {
+  --color-navbar-bg: color-mix(in oklab, var(--color-paper) 90%, transparent);
+  --color-toggle-hover-bg: color-mix(in oklab, var(--color-ink) 10%, transparent);
+}

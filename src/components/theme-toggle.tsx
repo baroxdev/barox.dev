@@ -11,7 +11,7 @@ export function ThemeToggle() {
       aria-label={
         theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
       }
-      className="rounded-full p-2 text-ink transition-colors hover:bg-ink/10"
+      className="rounded-full p-2 text-ink transition-colors hover:bg-toggle-hover-bg"
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5" aria-hidden="true" />

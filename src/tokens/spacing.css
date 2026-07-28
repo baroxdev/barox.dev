@@ -1,0 +1,23 @@
+/*
+ * Spacing and layout-geometry tokens.
+ */
+
+@theme {
+  /* Tailwind v4 derives its entire spacing utility set (p-*, gap-*, m-*,
+     etc.) from this one value. Declared explicitly here so it's part of
+     this design system's token set rather than an implicit framework
+     default, not because this project defines its own spacing scale. */
+  --spacing: 0.25rem;
+}
+
+/* Shared post-page layout geometry. --margin-col/--margin-gap are the same
+   right-margin column both the Sidenote component (#8) and the Image
+   right-variant (#9) bleed into, so the two features always line up. Not
+   exposed as Tailwind utilities (no bg-/text-/p- consumer needed) — just
+   plain custom properties consumed directly via var() in styles.css and
+   the journal-layout media query. */
+:root {
+  --content-col: 48rem;
+  --margin-col: 14rem;
+  --margin-gap: 2rem;
+}
