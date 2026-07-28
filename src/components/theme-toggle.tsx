@@ -18,6 +18,7 @@ export function ThemeToggle() {
           checked={theme === 'dark'}
           onCheckedChange={toggleTheme}
           aria-label={label}
+          nativeButton
           render={
             <Tooltip.Trigger className="rounded-full p-2 text-ink transition-colors hover:bg-toggle-hover-bg" />
           }
