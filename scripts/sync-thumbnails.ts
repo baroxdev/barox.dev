@@ -26,8 +26,8 @@ const uncalledR2Client: R2Client = {
 }
 
 const UNSYNCED_REASON_LABEL: Record<UnsyncedReason, string> = {
-  'local-path': 'local-path thumbnail not yet uploaded',
-  missing: 'no thumbnail set — will be auto-generated',
+  'thumbnail-local-path': 'local-path thumbnail not yet uploaded',
+  missing: 'no thumbnail or ogImage set — an og:image will be auto-generated',
 }
 
 async function runCheck() {
@@ -72,8 +72,8 @@ async function runSync() {
     return
   }
 
-  for (const { file, url } of synced) {
-    console.log(`${file} -> ${url}`)
+  for (const { file, field, url } of synced) {
+    console.log(`${file} (${field}) -> ${url}`)
   }
 }
 

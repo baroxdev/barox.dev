@@ -14,7 +14,7 @@ const CARD_HEIGHT = 630
  * Mirrors src/styles.css's light-theme tokens (--color-paper/-ink/etc).
  * satori can't read live CSS custom properties, so these are duplicated —
  * if the site's palette changes, update these too and re-sync any
- * auto-generated thumbnails (delete their `thumbnail:` line) to pick up
+ * auto-generated og:images (delete their `ogImage:` line) to pick up
  * the new colors; existing ones are frozen, same as manual thumbnails.
  */
 const COLORS = {
@@ -44,7 +44,7 @@ function loadFonts() {
   return fontsPromise
 }
 
-export interface ThumbnailCardData {
+export interface OgImageData {
   title: string
   tags: string[]
   /** gray-matter parses YAML `date:` scalars into a Date already; a string is also accepted. */
@@ -75,7 +75,7 @@ interface CardElement {
   } & Record<string, unknown>
 }
 
-function headerBlock(data: ThumbnailCardData): CardElement {
+function headerBlock(data: OgImageData): CardElement {
   return {
     type: 'div',
     props: {
@@ -122,7 +122,7 @@ function headerBlock(data: ThumbnailCardData): CardElement {
 }
 
 function attributionBlock(
-  data: ThumbnailCardData,
+  data: OgImageData,
   avatarDataUrl: string,
 ): CardElement {
   return {
@@ -179,14 +179,15 @@ function accentBar(): CardElement {
 }
 
 /**
- * Renders a 1200x630 OG-style card (title + tags + author attribution) for
- * posts with no manually-uploaded thumbnail. satori lays out JSX as SVG;
- * resvg rasterizes that SVG to PNG — the caller runs the result through
- * the same optimize/upload pipeline as a manual thumbnail.
+ * Renders a 1200x630 og:image card (title + tags + author attribution) for
+ * posts with no manually-uploaded thumbnail. This is a link-preview asset
+ * only — it duplicates content the page itself already renders (title,
+ * tags, author, date), so unlike a manual thumbnail it's never shown as an
+ * on-site banner. satori lays out JSX as SVG; resvg rasterizes that SVG to
+ * PNG — the caller runs the result through the same optimize/upload
+ * pipeline as a manual thumbnail.
  */
-export async function generateThumbnailCard(
-  data: ThumbnailCardData,
-): Promise<Buffer> {
+export async function generateOgImage(data: OgImageData): Promise<Buffer> {
   const [{ regular, bold }, avatarBytes] = await Promise.all([
     loadFonts(),
     readFile(data.avatarPath),

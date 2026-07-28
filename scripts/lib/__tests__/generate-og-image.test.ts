@@ -3,14 +3,14 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import sharp from 'sharp'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { generateThumbnailCard } from '../generate-thumbnail-card.ts'
+import { generateOgImage } from '../generate-og-image.ts'
 
-describe('generateThumbnailCard', () => {
+describe('generateOgImage', () => {
   let dir: string
   let avatarPath: string
 
   beforeEach(async () => {
-    dir = await mkdtemp(path.join(tmpdir(), 'generate-thumbnail-card-'))
+    dir = await mkdtemp(path.join(tmpdir(), 'generate-og-image-'))
     avatarPath = path.join(dir, 'avatar.png')
     await writeFile(
       avatarPath,
@@ -27,7 +27,7 @@ describe('generateThumbnailCard', () => {
   })
 
   it('renders a 1200x630 PNG card', async () => {
-    const png = await generateThumbnailCard({
+    const png = await generateOgImage({
       title: 'A Post Title',
       tags: ['meta', 'tanstack-start'],
       date: '2026-07-14',
@@ -41,7 +41,7 @@ describe('generateThumbnailCard', () => {
   }, 15_000)
 
   it('renders without a tags row when the post has no tags', async () => {
-    const png = await generateThumbnailCard({
+    const png = await generateOgImage({
       title: 'A Post With No Tags',
       tags: [],
       date: '2026-07-14',
