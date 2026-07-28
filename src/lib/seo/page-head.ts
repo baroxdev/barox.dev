@@ -7,6 +7,8 @@ export interface PageHeadOptions {
   path: string
   /** Open Graph type. Defaults to "website"; post pages pass "article". */
   type?: 'website' | 'article'
+  /** Absolute image URL (e.g. a post's thumbnail) for og:image/twitter:image. */
+  image?: string
   /** JSON-LD structured data (e.g. a schema.org Article), for post pages. */
   jsonLd?: Record<string, unknown>
 }
@@ -23,6 +25,7 @@ export function buildPageHead({
   description,
   path,
   type = 'website',
+  image,
   jsonLd,
 }: PageHeadOptions) {
   const url = absoluteUrl(path)
@@ -36,9 +39,20 @@ export function buildPageHead({
       { property: 'og:type', content: type },
       { property: 'og:url', content: url },
       { property: 'og:site_name', content: SITE_NAME },
-      { name: 'twitter:card', content: 'summary' },
+      // A thumbnail earns the larger "summary_large_image" Twitter card;
+      // without one, "summary" avoids Twitter rendering an empty image box.
+      {
+        name: 'twitter:card',
+        content: image ? 'summary_large_image' : 'summary',
+      },
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
+      ...(image
+        ? [
+            { property: 'og:image', content: image },
+            { name: 'twitter:image', content: image },
+          ]
+        : []),
       ...(jsonLd ? [{ 'script:ld+json': jsonLd }] : []),
     ],
     links: [{ rel: 'canonical', href: url }],
