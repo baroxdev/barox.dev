@@ -7,6 +7,7 @@ export interface Post {
   tags: string[]
   published: boolean
   excerpt: string
+  thumbnail?: string
 }
 
 export interface JournalIndexEntry {
@@ -14,6 +15,7 @@ export interface JournalIndexEntry {
   title: string
   date: Date
   tags: string[]
+  thumbnail?: string
 }
 
 export type TagIndex = Record<string, JournalIndexEntry[]>

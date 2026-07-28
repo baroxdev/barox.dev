@@ -25,6 +25,7 @@ const latestPostSchema = z.object({
   title: z.string().min(1),
   date: z.iso.date(),
   excerpt: z.string().min(1),
+  thumbnail: z.string().min(1).optional(),
 })
 
 const latestPostsSchema = z.array(latestPostSchema)
@@ -38,6 +39,7 @@ const getLatestPosts = createServerFn({ method: 'GET' }).handler(async () => {
       title: post.title,
       date: toIsoDateString(post.date),
       excerpt: post.excerpt,
+      thumbnail: post.thumbnail,
     })),
   )
 })
@@ -53,6 +55,7 @@ const journalIndexEntrySchema = z.object({
   title: z.string().min(1),
   date: z.iso.date(),
   tags: z.array(z.string().min(1)),
+  thumbnail: z.string().min(1).optional(),
 })
 
 const journalIndexSchema = z.array(journalIndexEntrySchema)
@@ -66,6 +69,7 @@ const getJournalIndex = createServerFn({ method: 'GET' }).handler(async () => {
       title: entry.title,
       date: toIsoDateString(entry.date),
       tags: entry.tags,
+      thumbnail: entry.thumbnail,
     })),
   )
 })
@@ -81,6 +85,7 @@ const tagEntrySchema = z.object({
   title: z.string().min(1),
   date: z.iso.date(),
   tags: z.array(z.string().min(1)),
+  thumbnail: z.string().min(1).optional(),
 })
 
 const tagEntriesSchema = z.array(tagEntrySchema)
@@ -97,6 +102,7 @@ const getPostsByTag = createServerFn({ method: 'GET' })
         title: entry.title,
         date: toIsoDateString(entry.date),
         tags: entry.tags,
+        thumbnail: entry.thumbnail,
       })),
     )
   })
@@ -113,6 +119,7 @@ const postSchema = z.object({
   date: z.iso.date(),
   tags: z.array(z.string().min(1)),
   excerpt: z.string().min(1),
+  thumbnail: z.string().min(1).optional(),
 })
 
 const postOrNullSchema = postSchema.nullable()
@@ -134,6 +141,7 @@ const getPost = createServerFn({ method: 'GET' })
       date: toIsoDateString(post.date),
       tags: post.tags,
       excerpt: post.excerpt,
+      thumbnail: post.thumbnail,
     })
   })
 

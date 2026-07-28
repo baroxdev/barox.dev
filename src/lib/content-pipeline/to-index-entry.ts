@@ -6,5 +6,6 @@ export function toIndexEntry(post: Post): JournalIndexEntry {
     title: post.title,
     date: post.date,
     tags: post.tags,
+    thumbnail: post.thumbnail,
   }
 }
