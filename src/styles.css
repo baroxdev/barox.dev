@@ -7,66 +7,17 @@
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
-/* Class-based dark mode: toggled via the .dark class on <html>,
-   driven by src/theme/ (see src/theme/theme.ts). The 'dark' class name
-   here must stay in sync with the literal 'dark' string in
-   src/theme/theme-init-script.ts and src/theme/use-theme.ts — those run
-   before/outside this stylesheet's scope so they can't share a constant
-   with it. */
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --font-sans: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-
-  /* Single source of truth for color tokens. Dark-mode values below
-     override these same custom properties under .dark — components never
-     need dark: variants for these, they just use bg-paper/text-ink/etc. */
-  --color-paper: #fbf6ec;
-  --color-ink: #1f2430;
-  --color-ink-muted: #5b5a52;
-  --color-accent: #1b3a5c;
-  --color-border: #e2d9c4;
-
-  /* Oversized, confident type scale (rubyonrails.org-inspired) — overrides
-     Tailwind's defaults so the whole scale shifts up systematically rather
-     than one-off font-size bumps per component. */
-  --text-base: 1.1875rem;
-  --text-base--line-height: 1.7;
-  --text-lg: 1.375rem;
-  --text-lg--line-height: 1.6;
-  --text-xl: 1.75rem;
-  --text-xl--line-height: 1.4;
-  --text-2xl: 2.25rem;
-  --text-2xl--line-height: 1.25;
-  --text-3xl: 2.875rem;
-  --text-3xl--line-height: 1.15;
-  --text-4xl: 3.75rem;
-  --text-4xl--line-height: 1.05;
-
-  /* Spacing token — Tailwind v4 derives its entire spacing utility set
-     (p-*, gap-*, m-*, etc.) from this one value. Declared explicitly here
-     so it's part of this design system's token block rather than an
-     implicit framework default. */
-  --spacing: 0.25rem;
-}
-
-.dark {
-  --color-paper: #201d19;
-  --color-ink: #ede7d9;
-  --color-ink-muted: #a8a296;
-  --color-accent: #7fa8d9;
-  --color-border: #3a362f;
-}
-
-/* Shared post-page layout geometry. --margin-col/--margin-gap are the same
-   right-margin column both the Sidenote component (#8) and the Image
-   right-variant (#9) bleed into, so the two features always line up. */
-:root {
-  --content-col: 48rem;
-  --margin-col: 14rem;
-  --margin-gap: 2rem;
-}
+/* Design tokens (Primer-shaped: primitive -> semantic -> component), split
+   by category. Class-based dark mode (registered in tokens/colors.css) is
+   toggled via the .dark class on <html>, driven by src/theme/ (see
+   src/theme/theme.ts). The 'dark' class name must stay in sync with the
+   literal 'dark' string in src/theme/theme-init-script.ts and
+   src/theme/use-theme.ts — those run before/outside this stylesheet's
+   scope so they can't share a constant with it. */
+@import './tokens/typography.css';
+@import './tokens/colors.css';
+@import './tokens/spacing.css';
+@import './tokens/components.css';
 
 /* Retarget @tailwindcss/typography's palette at this design system's own
    tokens instead of its stock gray scale. These variables already flip

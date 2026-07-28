@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '@base-ui/react/button'
 import type { CvData } from '../content/cv.ts'
 
 /**
@@ -34,17 +35,18 @@ export function DownloadCvPdfButton({ cv }: { cv: CvData }) {
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleClick}
       disabled={status === 'generating'}
-      className="rounded-full border border-border px-4 py-1.5 text-sm text-ink no-underline hover:text-accent disabled:opacity-60"
+      focusableWhenDisabled
+      className="rounded-full border border-border px-4 py-1.5 text-sm text-ink no-underline hover:text-accent data-disabled:opacity-60"
     >
       {status === 'generating'
         ? 'Preparing PDF…'
         : status === 'error'
           ? 'Couldn’t generate PDF — try again'
           : 'Download PDF'}
-    </button>
+    </Button>
   )
 }

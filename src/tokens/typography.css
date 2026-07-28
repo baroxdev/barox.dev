@@ -1,0 +1,26 @@
+/*
+ * Typography tokens. A type-scale step is already the semantic unit here
+ * (unlike color, where the same hex can serve different semantic roles),
+ * so there's no separate primitive/semantic split needed for this file.
+ */
+
+@theme {
+  --font-sans: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Oversized, confident type scale (rubyonrails.org-inspired) — overrides
+     Tailwind's defaults so the whole scale shifts up systematically rather
+     than one-off font-size bumps per component. */
+  --text-base: 1.1875rem;
+  --text-base--line-height: 1.7;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2.875rem;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 3.75rem;
+  --text-4xl--line-height: 1.05;
+}

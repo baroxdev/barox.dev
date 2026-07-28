@@ -24,6 +24,7 @@
     "sync-thumbnails:check": "tsx --env-file-if-exists=.env scripts/sync-thumbnails.ts --check"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@cloudflare/vite-plugin": "^1.26.0",
     "@fontsource/fira-sans": "^5.2.7",
     "@fontsource/ibm-plex-mono": "^5.2.7",
