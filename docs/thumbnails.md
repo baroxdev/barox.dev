@@ -47,6 +47,8 @@ unsynced local path.
 
 ## Usage
 
+### Manual thumbnail
+
 Author drops an image next to the post (e.g.
 `content/journal/my-post-thumbnail.png`) and sets
 `thumbnail: ./my-post-thumbnail.png` in frontmatter, then runs:
@@ -55,15 +57,34 @@ Author drops an image next to the post (e.g.
 pnpm run sync-thumbnails
 ```
 
-This uploads the image to R2 (content-hash keyed — re-running with no new
-or changed images uploads nothing and edits nothing) and rewrites that
-post's `thumbnail:` line in place to the final `https://media.barox.dev/...`
-URL. Commit the rewritten `.mdx` file as usual.
+Every thumbnail — manual or auto-generated (below) — is resized to a max
+width of 1200px and re-encoded as WebP (quality 80) before upload, so a
+multi-megabyte source photo doesn't end up served to visitors as-is. The
+resulting object is content-hash keyed (hashing the _original_ source
+bytes, before optimizing) — re-running with no new or changed images
+re-encodes and uploads nothing. The script rewrites that post's
+`thumbnail:` line in place to the final `https://media.barox.dev/...` URL.
+Commit the rewritten `.mdx` file (and the resized source image, if new) as
+usual.
+
+### Auto-generated thumbnail (no manual image)
+
+A published post with **no** `thumbnail:` field at all gets one generated
+automatically — a card with the title, tags, and an author attribution
+row — instead of requiring a manual upload. This needs a real author photo
+checked in at **`public/images/avatar.png`** (no fallback if it's missing —
+generation will fail loudly).
+
+Once generated and synced, a thumbnail is frozen: editing the post's title
+afterward does **not** regenerate it. Delete the `thumbnail:` line and
+re-run `pnpm run sync-thumbnails` to force a fresh render.
 
 ## Verifying setup
 
 - [ ] `wrangler r2 bucket create barox-dev-thumbnails` succeeded
 - [ ] `media.barox.dev` is connected as a custom domain on the bucket and resolves over HTTPS
 - [ ] `R2_BUCKET_NAME` / `R2_PUBLIC_BASE_URL` are set locally and as CI variables
-- [ ] `pnpm run sync-thumbnails` on a post with a local-path thumbnail uploads it and rewrites the frontmatter to a working `media.barox.dev` URL
+- [ ] `public/images/avatar.png` exists (required for auto-generated thumbnails)
+- [ ] `pnpm run sync-thumbnails` on a post with a local-path thumbnail uploads a resized WebP and rewrites the frontmatter to a working `media.barox.dev` URL
+- [ ] `pnpm run sync-thumbnails` on a post with no `thumbnail:` field generates and uploads a card
 - [ ] Re-running `pnpm run sync-thumbnails` immediately after uploads nothing and edits nothing
