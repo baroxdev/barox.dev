@@ -29,10 +29,25 @@ test('a post page has a distinct title and JSON-LD Article data', async ({
   const jsonLd = await page
     .locator('script[type="application/ld+json"]')
     .textContent()
-  expect(JSON.parse(jsonLd ?? '{}')).toMatchObject({
+  const parsedJsonLd: unknown = JSON.parse(jsonLd ?? '{}')
+  expect(parsedJsonLd).toMatchObject({
     '@type': 'Article',
     headline: 'Building barox.dev, Kicking Off the Journal',
+    image: expect.stringMatching(/^https:\/\/media\.barox\.dev\//),
   })
+
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    /^https:\/\/media\.barox\.dev\//,
+  )
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+    'content',
+    /^https:\/\/media\.barox\.dev\//,
+  )
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+    'content',
+    'summary_large_image',
+  )
 })
 
 test('sitemap.xml is served as valid XML listing the real post', async ({

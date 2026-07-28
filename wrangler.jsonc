@@ -1,13 +1,27 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "barox-dev",
-  "compatibility_date": "2025-09-02",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
-  "env": {
-    "canary": {
-      "name": "barox-dev-canary",
-      "routes": [{ "pattern": "canary.barox.dev", "custom_domain": true }],
-    },
-  },
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "barox-dev",
+	"compatibility_date": "2025-09-02",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"main": "@tanstack/react-start/server-entry",
+	"env": {
+		"canary": {
+			"name": "barox-dev-canary",
+			"routes": [
+				{
+					"pattern": "canary.barox.dev",
+					"custom_domain": true
+				}
+			],
+		},
+	},
+	"r2_buckets": [
+		{
+			"bucket_name": "barox-dev-thumbnails",
+			"binding": "barox_dev_thumbnails",
+			"remote": true
+		}
+	],
 }

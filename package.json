@@ -20,8 +20,8 @@
     "check": "prettier --check .",
     "deploy": "pnpm run build && wrangler deploy",
     "deploy:canary": "pnpm run build && wrangler deploy --env canary",
-    "sync-thumbnails": "tsx scripts/sync-thumbnails.ts",
-    "sync-thumbnails:check": "tsx scripts/sync-thumbnails.ts --check"
+    "sync-thumbnails": "tsx --env-file-if-exists=.env scripts/sync-thumbnails.ts",
+    "sync-thumbnails:check": "tsx --env-file-if-exists=.env scripts/sync-thumbnails.ts --check"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.26.0",

@@ -118,4 +118,49 @@ describe('buildPageHead', () => {
       'script:ld+json': { '@type': 'Article', headline: 'A Post' },
     })
   })
+
+  it('omits og:image/twitter:image and uses a "summary" Twitter card when no image is given', () => {
+    const head = buildPageHead({
+      title: 'A Post',
+      description: 'An excerpt.',
+      path: '/journal/a-post',
+    })
+
+    expect(
+      head.meta.some(
+        (entry) => 'property' in entry && entry.property === 'og:image',
+      ),
+    ).toBe(false)
+    expect(
+      head.meta.some(
+        (entry) => 'name' in entry && entry.name === 'twitter:image',
+      ),
+    ).toBe(false)
+    expect(head.meta).toContainEqual({
+      name: 'twitter:card',
+      content: 'summary',
+    })
+  })
+
+  it('adds og:image/twitter:image and a "summary_large_image" Twitter card when an image is given', () => {
+    const head = buildPageHead({
+      title: 'A Post',
+      description: 'An excerpt.',
+      path: '/journal/a-post',
+      image: 'https://media.barox.dev/thumbnails/abc123.png',
+    })
+
+    expect(head.meta).toContainEqual({
+      property: 'og:image',
+      content: 'https://media.barox.dev/thumbnails/abc123.png',
+    })
+    expect(head.meta).toContainEqual({
+      name: 'twitter:image',
+      content: 'https://media.barox.dev/thumbnails/abc123.png',
+    })
+    expect(head.meta).toContainEqual({
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    })
+  })
 })

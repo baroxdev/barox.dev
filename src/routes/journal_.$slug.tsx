@@ -19,6 +19,7 @@ function postJsonLd(post: PostDetail) {
     datePublished: post.date,
     author: { '@type': 'Person', name: 'Barox' },
     url: `${SITE_URL}/journal/${post.slug}`,
+    ...(post.thumbnail ? { image: post.thumbnail } : {}),
   }
 }
 
@@ -37,6 +38,7 @@ export const Route = createFileRoute('/journal_/$slug')({
           description: post.excerpt,
           path: `/journal/${post.slug}`,
           type: 'article',
+          image: post.thumbnail,
           jsonLd: postJsonLd(post),
         })
       : buildPageHead({
@@ -71,6 +73,13 @@ function Post() {
   return (
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
+        {post.thumbnail && (
+          <img
+            src={post.thumbnail}
+            alt=""
+            className="mb-6 h-64 w-full rounded object-cover"
+          />
+        )}
         <h1 className="text-3xl font-bold text-ink">{post.title}</h1>
         <p className="mt-2 text-sm text-ink-muted">
           <time dateTime={post.date}>{formatPostDate(post.date)}</time>
