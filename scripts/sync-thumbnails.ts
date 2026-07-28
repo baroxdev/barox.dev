@@ -3,9 +3,11 @@ import { fileURLToPath } from 'node:url'
 import { createWranglerR2Client } from './lib/r2-client.ts'
 import { syncThumbnails } from './lib/sync-thumbnails.ts'
 import type { R2Client } from './lib/r2-client.ts'
+import type { UnsyncedReason } from './lib/sync-thumbnails.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const POSTS_DIR = path.join(__dirname, '..', 'content', 'journal')
+const AVATAR_PATH = path.join(__dirname, '..', 'public', 'images', 'avatar.png')
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -23,18 +25,29 @@ const uncalledR2Client: R2Client = {
   },
 }
 
+const UNSYNCED_REASON_LABEL: Record<UnsyncedReason, string> = {
+  'local-path': 'local-path thumbnail not yet uploaded',
+  missing: 'no thumbnail set — will be auto-generated',
+}
+
 async function runCheck() {
   const { unsynced } = await syncThumbnails({
     postsDir: POSTS_DIR,
     r2Client: uncalledR2Client,
     publicBaseUrl: '',
+    avatarPath: AVATAR_PATH,
     check: true,
   })
 
   if (unsynced.length > 0) {
     console.error(
-      `Found ${unsynced.length} post(s) with an unsynced local thumbnail — run \`pnpm run sync-thumbnails\` locally before committing:\n` +
-        unsynced.map((file) => `  - ${file}`).join('\n'),
+      `Found ${unsynced.length} post(s) needing a thumbnail sync — run \`pnpm run sync-thumbnails\` locally before committing:\n` +
+        unsynced
+          .map(
+            ({ file, reason }) =>
+              `  - ${file} (${UNSYNCED_REASON_LABEL[reason]})`,
+          )
+          .join('\n'),
     )
     process.exitCode = 1
     return
@@ -51,10 +64,11 @@ async function runSync() {
     postsDir: POSTS_DIR,
     r2Client: createWranglerR2Client(bucket),
     publicBaseUrl,
+    avatarPath: AVATAR_PATH,
   })
 
   if (synced.length === 0) {
-    console.log('No local-path thumbnails to sync.')
+    console.log('No thumbnails to sync.')
     return
   }
 
