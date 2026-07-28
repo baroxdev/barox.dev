@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { buildPageHead } from '../lib/seo/page-head.ts'
 import { cv } from '../content/cv.ts'
 import type { CvExperience, CvProject } from '../content/cv.ts'
+import { DownloadCvPdfButton } from '../components/download-cv-pdf-button.tsx'
 
 export const Route = createFileRoute('/cv')({
   head: () =>
@@ -59,11 +60,13 @@ function ExperienceEntry({ entry }: { entry: CvExperience }) {
         {' — '}
         {entry.location}
       </p>
-      <ul className="mt-4 list-disc space-y-2 pl-5 text-ink">
-        {entry.highlights.map((highlight) => (
-          <li key={highlight}>{highlight}</li>
-        ))}
-      </ul>
+      {entry.highlights.length > 0 && (
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-ink">
+          {entry.highlights.map((highlight) => (
+            <li key={highlight}>{highlight}</li>
+          ))}
+        </ul>
+      )}
       <TechTags tech={entry.tech} />
     </li>
   )
@@ -93,41 +96,44 @@ function ProjectEntry({ project }: { project: CvProject }) {
 function Cv() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <header>
-        <h1 className="text-3xl font-bold text-ink">{cv.name}</h1>
-        <p className="mt-1 text-lg text-ink-muted">{cv.title}</p>
-        <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          <li>
-            <a href={`mailto:${cv.contact.email}`} className="text-accent">
-              {cv.contact.email}
-            </a>
-          </li>
-          <li>
-            <a href={`tel:${cv.contact.phone}`} className="text-accent">
-              {cv.contact.phone}
-            </a>
-          </li>
-          <li>
-            <a
-              href={cv.contact.linkedin}
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent"
-            >
-              LinkedIn
-            </a>
-          </li>
-          <li>
-            <a
-              href={cv.contact.github}
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent"
-            >
-              GitHub
-            </a>
-          </li>
-        </ul>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-ink">{cv.name}</h1>
+          <p className="mt-1 text-lg text-ink-muted">{cv.title}</p>
+          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <li>
+              <a href={`mailto:${cv.contact.email}`} className="text-accent">
+                {cv.contact.email}
+              </a>
+            </li>
+            <li>
+              <a href={`tel:${cv.contact.phone}`} className="text-accent">
+                {cv.contact.phone}
+              </a>
+            </li>
+            <li>
+              <a
+                href={cv.contact.linkedin}
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent"
+              >
+                LinkedIn
+              </a>
+            </li>
+            <li>
+              <a
+                href={cv.contact.github}
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent"
+              >
+                GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+        <DownloadCvPdfButton cv={cv} />
       </header>
 
       <section className="mt-12">
