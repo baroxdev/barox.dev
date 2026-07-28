@@ -17,11 +17,4 @@
 			],
 		},
 	},
-	"r2_buckets": [
-		{
-			"bucket_name": "barox-dev-thumbnails",
-			"binding": "barox_dev_thumbnails",
-			"remote": true
-		}
-	],
 }
