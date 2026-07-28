@@ -60,11 +60,13 @@ function ExperienceEntry({ entry }: { entry: CvExperience }) {
         {' — '}
         {entry.location}
       </p>
-      <ul className="mt-4 list-disc space-y-2 pl-5 text-ink">
-        {entry.highlights.map((highlight) => (
-          <li key={highlight}>{highlight}</li>
-        ))}
-      </ul>
+      {entry.highlights.length > 0 && (
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-ink">
+          {entry.highlights.map((highlight) => (
+            <li key={highlight}>{highlight}</li>
+          ))}
+        </ul>
+      )}
       <TechTags tech={entry.tech} />
     </li>
   )

@@ -64,11 +64,25 @@ export const cv: CvData = {
   experience: [
     {
       role: 'Software Engineer',
+      company: 'EPOS Vietnam (Floating Cube Studios)',
+      location: 'Ho Chi Minh City',
+      start: 'Apr 2026',
+      end: 'Present',
+      highlights: [],
+      tech: [
+        'React (Ant Group internal fork)',
+        'Tailwind CSS',
+        'Micro-frontend',
+        'WebView / H5 (cross-platform)',
+      ],
+    },
+    {
+      role: 'Software Engineer',
       company: 'Arobid',
       companyUrl: 'https://arobid.com',
       location: 'District 7, HCMC',
       start: 'Mar 2024',
-      end: 'Present',
+      end: 'Apr 2026',
       highlights: [
         'Implemented and refactored real-time chat for buyers and suppliers using SignalR and React Query, improving perceived message delivery time by about 20% for active users.',
         'Spearheaded core B2B flows (RFQ, quotation, contracts) in a Turbo micro-frontend stack, designing a React/Zustand state architecture that reduced form re-rendering by 30%.',
