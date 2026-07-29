@@ -61,6 +61,21 @@ These IDs aren't secrets — they're already embedded in the public script
 tag giscus.app generates for you, and in the widget's own HTML on every
 page that loads it — so they're committed as plain constants, not env vars.
 
+## Theme
+
+The widget uses a custom theme (`public/giscus/light.css` and `dark.css`)
+rather than one of giscus's built-in presets, so it matches barox.dev's own
+paper/ink/accent palette instead of looking like a generic GitHub-styled
+embed. `GiscusComments` points `data-theme` at the absolute URL of whichever
+file matches the current site theme, and re-points it live via `postMessage`
+when the reader toggles light/dark.
+
+Because the widget lives in a cross-origin iframe, it can't read our page's
+CSS custom properties directly — the theme files duplicate the real hex
+values from `src/tokens/colors.css` as literal colors. **If the site's
+palette ever changes, update these two files too** (same caveat as the
+auto-generated OG image template in `scripts/lib/generate-og-image.ts`).
+
 ## Verifying setup
 
 - [ ] GitHub Discussions is enabled on `baroxdev/barox.dev`
@@ -70,3 +85,4 @@ page that loads it — so they're committed as plain constants, not env vars.
 - [ ] Visiting a post page shows the giscus widget below the article body
 - [ ] Commenting (as a GitHub-authenticated user) creates a discussion thread scoped to that post's pathname
 - [ ] Toggling light/dark mode updates the widget's theme without a page reload
+- [ ] The widget's colors visually match the rest of the site (paper background, ink text, navy accent), not GitHub's default light/dark theme

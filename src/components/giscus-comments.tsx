@@ -1,8 +1,23 @@
 import { useEffect, useRef } from 'react'
 import { useTheme } from '../theme/use-theme.ts'
 import { GISCUS_CONFIG } from '../lib/giscus/giscus-config.ts'
+import { absoluteUrl } from '../lib/seo/site-url.ts'
+import type { Theme } from '../theme/theme.ts'
 
 const GISCUS_ORIGIN = 'https://giscus.app'
+
+/**
+ * giscus's iframe is a separate origin from ours, so it can't read our
+ * page's CSS custom properties — its "custom theme" mechanism is instead a
+ * URL to a real, publicly-hosted CSS file (see public/giscus/{light,dark}.css,
+ * literal hex values duplicated from src/tokens/colors.css). Always resolves
+ * to the canonical production domain (like every other absoluteUrl call),
+ * not whichever host is currently serving the page — the same public/
+ * static assets ship to every deploy target, so that's always reachable.
+ */
+function giscusThemeUrl(theme: Theme): string {
+  return absoluteUrl(`/giscus/${theme}.css`)
+}
 
 export interface GiscusCommentsProps {
   repo?: string
@@ -43,7 +58,9 @@ export function GiscusComments({
     // correct class by the time any effect runs, so this sidesteps any
     // dependency on exactly when useTheme's own state-correcting layout
     // effect has settled relative to this one.
-    const initialTheme = document.documentElement.classList.contains('dark')
+    const initialTheme: Theme = document.documentElement.classList.contains(
+      'dark',
+    )
       ? 'dark'
       : 'light'
 
@@ -59,7 +76,7 @@ export function GiscusComments({
     script.setAttribute('data-strict', '1')
     script.setAttribute('data-reactions-enabled', '1')
     script.setAttribute('data-input-position', 'top')
-    script.setAttribute('data-theme', initialTheme)
+    script.setAttribute('data-theme', giscusThemeUrl(initialTheme))
     script.setAttribute('data-lang', 'en')
     script.setAttribute('data-loading', 'lazy')
     container.appendChild(script)
@@ -77,7 +94,7 @@ export function GiscusComments({
       'iframe.giscus-frame',
     )
     iframe?.contentWindow?.postMessage(
-      { giscus: { setConfig: { theme } } },
+      { giscus: { setConfig: { theme: giscusThemeUrl(theme) } } },
       GISCUS_ORIGIN,
     )
   }, [theme])

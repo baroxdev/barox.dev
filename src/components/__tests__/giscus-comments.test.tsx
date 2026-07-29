@@ -38,17 +38,17 @@ describe('GiscusComments', () => {
     expect(script?.getAttribute('data-loading')).toBe('lazy')
   })
 
-  it('sets data-theme to light by default', () => {
+  it('points data-theme at the hosted light theme CSS by default', () => {
     const { container } = render(
       <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
     )
 
     expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
-      'light',
+      'https://barox.dev/giscus/light.css',
     )
   })
 
-  it('sets data-theme to dark when the document is already in dark mode', () => {
+  it('points data-theme at the hosted dark theme CSS when the document is already in dark mode', () => {
     document.documentElement.classList.add('dark')
 
     const { container } = render(
@@ -56,7 +56,7 @@ describe('GiscusComments', () => {
     )
 
     expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
-      'dark',
+      'https://barox.dev/giscus/dark.css',
     )
   })
 })
