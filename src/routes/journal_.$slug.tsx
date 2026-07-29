@@ -6,6 +6,7 @@ import type { PostDetail } from '../services/posts.ts'
 import { CodeBlock } from '../components/mdx/code-block.tsx'
 import { Image } from '../components/mdx/image.tsx'
 import { Sidenote } from '../components/mdx/sidenote.tsx'
+import { GiscusComments } from '../components/giscus-comments.tsx'
 import { buildPageHead } from '../lib/seo/page-head.ts'
 import { SITE_URL } from '../lib/seo/site-url.ts'
 
@@ -110,6 +111,8 @@ function Post() {
       <div className="prose prose-lg prose-with-sidenotes mt-10 max-w-none">
         <MDXContent components={MDX_COMPONENTS} />
       </div>
+
+      <GiscusComments />
     </main>
   )
 }
