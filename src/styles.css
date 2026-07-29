@@ -128,6 +128,34 @@ kbd {
     -webkit-mask-size: 14px 6px;
     mask-size: 14px 6px;
   }
+
+  /* Second deliberately "imperfect but organized" detail (issue #1 budgets
+     2-3 total, not site-wide, for this kind of signature flourish): a
+     hand-drawn marker circle around a keyword, sketchnote-style. Used
+     sparingly, currently only on the About page. Same mask technique as
+     the underline above — a single wobbly closed-loop SVG, non-uniformly
+     stretched to fit whatever word it wraps (the stretch itself reads as
+     more hand-drawn, not less). */
+  .mark-circle {
+    --circle-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 100'%3E%3Cpath d='M35 55 C20 20 90 5 140 8 C190 11 205 35 200 55 C195 78 140 92 95 90 C45 88 15 75 20 50 C25 30 60 62 110 60 C150 58 180 45 195 30' stroke='black' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+    position: relative;
+    padding: 0 0.15em;
+  }
+
+  .mark-circle::before {
+    content: '';
+    position: absolute;
+    inset: -0.55em -0.5em;
+    background-color: var(--color-accent);
+    -webkit-mask-image: var(--circle-mark);
+    mask-image: var(--circle-mark);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    pointer-events: none;
+  }
 }
 
 /* Shiki (parsePost, content-pipeline, via shiki-code-figure.ts) is
