@@ -16,7 +16,14 @@ export const Route = createFileRoute('/about')({
 function About() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-bold text-ink">About</h1>
+      <div className="flex items-center gap-6">
+        <img
+          src="/images/avatar.png"
+          alt="Barox"
+          className="h-24 w-24 rounded-full object-cover"
+        />
+        <h1 className="text-3xl font-bold text-ink">About</h1>
+      </div>
 
       <div className="prose prose-lg mt-8 max-w-none">
         <p>
@@ -32,6 +39,14 @@ function About() {
           MangoAds building marketing sites for banking and education
           clients. I studied Software Engineering at FPT University.
         </p>
+
+        {/* Placeholder — swap for a real photo (workspace/team/whatever)
+            whenever one's ready; no other change needed. */}
+        <img
+          src="/images/placeholder-about.svg"
+          alt="Photo coming soon"
+          className="h-auto max-w-full rounded"
+        />
 
         <p>
           Day to day I work mostly in React, Next.js, and TypeScript on the
