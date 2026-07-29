@@ -64,7 +64,9 @@ describe('syncThumbnails', () => {
       avatarPath,
     })
 
-    expect(result.synced).toHaveLength(1)
+    expect(result.synced).toEqual([
+      expect.objectContaining({ file: 'a-post.mdx', field: 'thumbnail' }),
+    ])
     expect(r2Client.uploaded).toHaveLength(1)
 
     const rewritten = await readFile(path.join(dir, 'a-post.mdx'), 'utf-8')
@@ -72,6 +74,25 @@ describe('syncThumbnails', () => {
       /thumbnail: https:\/\/media\.barox\.dev\/thumbnails\/[0-9a-f]{16}\.webp/,
     )
     expect(rewritten).not.toContain('./cover.png')
+    expect(rewritten).not.toContain('ogImage:')
+  })
+
+  it('does not also generate an ogImage when a manual thumbnail is present', async () => {
+    await writeFile(path.join(dir, 'cover.png'), FIXTURE_AVATAR_PNG)
+    await writePost(
+      'a-post.mdx',
+      'slug: a-post\ntitle: A Post\ndate: 2026-01-01\ntags: []\npublished: true\nthumbnail: ./cover.png',
+    )
+
+    const r2Client = createFakeR2Client()
+    const result = await syncThumbnails({
+      postsDir: dir,
+      r2Client,
+      publicBaseUrl: 'https://media.barox.dev',
+      avatarPath,
+    })
+
+    expect(result.synced.map((s) => s.field)).toEqual(['thumbnail'])
   })
 
   it('is idempotent: re-running after a sync uploads nothing and edits nothing further', async () => {
@@ -143,6 +164,24 @@ describe('syncThumbnails', () => {
     expect(r2Client.uploaded).toHaveLength(0)
   })
 
+  it('leaves a post with an already-synced ogImage untouched, even with no thumbnail', async () => {
+    await writePost(
+      'already-synced.mdx',
+      'slug: already-synced\ntitle: Already Synced\ndate: 2026-01-01\ntags: []\npublished: true\nogImage: https://media.barox.dev/thumbnails/abc123.webp',
+    )
+
+    const r2Client = createFakeR2Client()
+    const result = await syncThumbnails({
+      postsDir: dir,
+      r2Client,
+      publicBaseUrl: 'https://media.barox.dev',
+      avatarPath,
+    })
+
+    expect(result.synced).toHaveLength(0)
+    expect(r2Client.uploaded).toHaveLength(0)
+  })
+
   it('skips an unpublished draft with no thumbnail entirely', async () => {
     await writePost(
       'draft.mdx',
@@ -162,9 +201,10 @@ describe('syncThumbnails', () => {
 
     const untouched = await readFile(path.join(dir, 'draft.mdx'), 'utf-8')
     expect(untouched).not.toContain('thumbnail:')
+    expect(untouched).not.toContain('ogImage:')
   })
 
-  it('auto-generates a thumbnail card for a published post with no thumbnail field', async () => {
+  it('auto-generates an ogImage (not a thumbnail) for a published post with neither field set', async () => {
     await writePost(
       'no-thumb.mdx',
       'slug: no-thumb\ntitle: A Post With No Thumbnail\ndate: 2026-01-01\ntags: [meta]\npublished: true',
@@ -178,16 +218,19 @@ describe('syncThumbnails', () => {
       avatarPath,
     })
 
-    expect(result.synced).toHaveLength(1)
+    expect(result.synced).toEqual([
+      expect.objectContaining({ file: 'no-thumb.mdx', field: 'ogImage' }),
+    ])
     expect(r2Client.uploaded).toHaveLength(1)
 
     const rewritten = await readFile(path.join(dir, 'no-thumb.mdx'), 'utf-8')
     expect(rewritten).toMatch(
-      /thumbnail: https:\/\/media\.barox\.dev\/thumbnails\/[0-9a-f]{16}\.webp/,
+      /ogImage: https:\/\/media\.barox\.dev\/thumbnails\/[0-9a-f]{16}\.webp/,
     )
+    expect(rewritten).not.toContain('thumbnail:')
   }, 15_000)
 
-  it('freezes a generated thumbnail: re-running after generation does not regenerate it', async () => {
+  it('freezes a generated ogImage: re-running after generation does not regenerate it', async () => {
     await writePost(
       'no-thumb.mdx',
       'slug: no-thumb\ntitle: A Post With No Thumbnail\ndate: 2026-01-01\ntags: []\npublished: true',
@@ -226,7 +269,7 @@ describe('syncThumbnails', () => {
     expect(r2Client.uploaded).toHaveLength(1)
   }, 15_000)
 
-  it('check mode reports both an unsynced local path and a missing thumbnail, without uploading or writing files', async () => {
+  it('check mode reports both an unsynced local thumbnail path and a missing thumbnail/ogImage, without uploading or writing files', async () => {
     await writeFile(path.join(dir, 'cover.png'), FIXTURE_AVATAR_PNG)
     await writePost(
       'local-path.mdx',
@@ -252,7 +295,7 @@ describe('syncThumbnails', () => {
 
     expect(result.unsynced).toEqual(
       expect.arrayContaining([
-        { file: 'local-path.mdx', reason: 'local-path' },
+        { file: 'local-path.mdx', reason: 'thumbnail-local-path' },
         { file: 'no-thumb.mdx', reason: 'missing' },
       ]),
     )

@@ -11,7 +11,13 @@ import { SITE_URL } from '../lib/seo/site-url.ts'
 
 const MDX_COMPONENTS = { Sidenote, Image, figure: CodeBlock }
 
+/** og:image/JSON-LD source: the manual thumbnail if there is one, otherwise the auto-generated fallback. Never the reverse — a manual photo is always preferred over a generated card. */
+function socialImage(post: PostDetail): string | undefined {
+  return post.thumbnail ?? post.ogImage
+}
+
 function postJsonLd(post: PostDetail) {
+  const image = socialImage(post)
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -19,7 +25,7 @@ function postJsonLd(post: PostDetail) {
     datePublished: post.date,
     author: { '@type': 'Person', name: 'Barox' },
     url: `${SITE_URL}/journal/${post.slug}`,
-    ...(post.thumbnail ? { image: post.thumbnail } : {}),
+    ...(image ? { image } : {}),
   }
 }
 
@@ -38,7 +44,7 @@ export const Route = createFileRoute('/journal_/$slug')({
           description: post.excerpt,
           path: `/journal/${post.slug}`,
           type: 'article',
-          image: post.thumbnail,
+          image: socialImage(post),
           jsonLd: postJsonLd(post),
         })
       : buildPageHead({

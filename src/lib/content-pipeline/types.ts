@@ -7,7 +7,10 @@ export interface Post {
   tags: string[]
   published: boolean
   excerpt: string
+  /** Manual, on-site-displayable thumbnail (banner + og:image/JSON-LD). */
   thumbnail?: string
+  /** Auto-generated og:image/JSON-LD fallback when there's no thumbnail — never shown as an on-site banner (it duplicates the page's own title/tags/author/date). */
+  ogImage?: string
 }
 
 export interface JournalIndexEntry {

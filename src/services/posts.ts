@@ -120,6 +120,7 @@ const postSchema = z.object({
   tags: z.array(z.string().min(1)),
   excerpt: z.string().min(1),
   thumbnail: z.string().min(1).optional(),
+  ogImage: z.string().min(1).optional(),
 })
 
 const postOrNullSchema = postSchema.nullable()
@@ -142,6 +143,7 @@ const getPost = createServerFn({ method: 'GET' })
       tags: post.tags,
       excerpt: post.excerpt,
       thumbnail: post.thumbnail,
+      ogImage: post.ogImage,
     })
   })
 
