@@ -1,0 +1,38 @@
+/*
+ * Custom giscus theme (light) matching barox.dev's own design tokens
+ * (src/tokens/colors.css). giscus's iframe is a separate origin and can't
+ * read our page's CSS custom properties, so these are literal hex values
+ * duplicated from the real token source — keep in sync if the palette
+ * changes (same caveat as the auto-generated OG image template, see
+ * scripts/lib/generate-og-image.ts).
+ *
+ * Variable names/selectors follow giscus's own theme format:
+ * https://github.com/giscus/giscus/blob/main/styles/themes/light.css
+ */
+main {
+  --color-fg-default: #1f2430; /* --color-ink (light) */
+  --color-fg-muted: #5b5a52; /* --color-ink-muted (light) */
+  --color-fg-subtle: #5b5a52;
+  --color-canvas-default: #fbf6ec; /* --color-paper (light) */
+  --color-canvas-overlay: #fbf6ec;
+  --color-canvas-inset: #e2d9c4; /* --color-border (light) */
+  --color-canvas-subtle: #e2d9c4;
+  --color-border-default: #e2d9c4;
+  --color-border-muted: #e2d9c4;
+  --color-neutral-muted: rgb(226 217 196 / 40%);
+  --color-accent-fg: #1b3a5c; /* --color-accent (light) */
+  --color-accent-emphasis: #1b3a5c;
+  --color-accent-muted: rgb(27 58 92 / 40%);
+  --color-accent-subtle: rgb(27 58 92 / 10%);
+  --color-btn-text: #1f2430;
+  --color-btn-bg: #fbf6ec;
+  --color-btn-border: #e2d9c4;
+  --color-btn-hover-bg: #e2d9c4;
+  --color-btn-hover-border: #e2d9c4;
+  --color-btn-primary-text: #fbf6ec;
+  --color-btn-primary-bg: #1b3a5c;
+  --color-btn-primary-border: #1b3a5c;
+  --color-btn-primary-hover-bg: #16304c;
+  --color-social-reaction-bg-hover: #e2d9c4;
+  --color-social-reaction-bg-reacted-hover: rgb(27 58 92 / 20%);
+}
