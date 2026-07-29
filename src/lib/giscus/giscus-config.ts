@@ -1,16 +1,15 @@
 /**
  * Giscus (GitHub-Discussions-backed comments, issue #15) configuration.
  *
- * repoId/categoryId can't be filled in until the repo owner enables GitHub
- * Discussions and installs the giscus app — both are account-owner actions
- * on the live GitHub repo, the same category of setup as the Cloudflare/R2
- * steps in docs/deploy.md and docs/thumbnails.md. See docs/giscus-setup.md
- * for the exact steps; GiscusComments renders nothing until these are set.
+ * repoId/categoryId come from https://giscus.app once GitHub Discussions is
+ * enabled, the "Comments" category exists, and the giscus app is installed
+ * on this repo — see docs/giscus-setup.md for the full walkthrough.
+ * GiscusComments renders nothing if either is ever cleared back to "".
  */
 export const GISCUS_CONFIG = {
   repo: 'baroxdev/barox.dev',
-  repoId: '',
+  repoId: 'R_kgDOTXTuKA',
   category: 'Comments',
-  categoryId: '',
+  categoryId: 'DIC_kwDOTXTuKM4DCNns',
   mapping: 'pathname',
 } as const
