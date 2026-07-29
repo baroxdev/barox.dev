@@ -19,8 +19,15 @@ export function DownloadCvPdfButton({ cv }: { cv: CvData }) {
         import('../lib/cv-pdf/cv-pdf-document.tsx'),
       ])
 
-      const blob = await pdf(<CvPdfDocument cv={cv} />).toBlob()
-      const url = URL.createObjectURL(blob)
+      const pdfBlob = await pdf(<CvPdfDocument cv={cv} />).toBlob()
+      // Safari's built-in PDF viewer intercepts navigation to blob: URLs
+      // typed application/pdf and previews them instead of honoring the
+      // anchor's `download` attribute. Re-typing as a generic binary blob
+      // stops Safari from recognizing it as displayable content, so it
+      // falls back to actually downloading the file (same well-known
+      // workaround used by libraries like FileSaver.js).
+      const downloadBlob = new Blob([pdfBlob], { type: 'application/octet-stream' })
+      const url = URL.createObjectURL(downloadBlob)
       const link = document.createElement('a')
       link.href = url
       link.download = `${cv.name.replace(/\s+/g, '-')}-CV.pdf`
