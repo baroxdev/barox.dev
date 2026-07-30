@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useTheme } from '../theme/use-theme.ts'
 import { GISCUS_CONFIG } from '../lib/giscus/giscus-config.ts'
-import { absoluteUrl } from '../lib/seo/site-url.ts'
 import type { Theme } from '../theme/theme.ts'
 
 const GISCUS_ORIGIN = 'https://giscus.app'
@@ -10,13 +9,22 @@ const GISCUS_ORIGIN = 'https://giscus.app'
  * giscus's iframe is a separate origin from ours, so it can't read our
  * page's CSS custom properties — its "custom theme" mechanism is instead a
  * URL to a real, publicly-hosted CSS file (see public/giscus/{light,dark}.css,
- * literal hex values duplicated from src/tokens/colors.css). Always resolves
- * to the canonical production domain (like every other absoluteUrl call),
- * not whichever host is currently serving the page — the same public/
- * static assets ship to every deploy target, so that's always reachable.
+ * literal hex values duplicated from src/tokens/colors.css).
+ *
+ * Deliberately NOT `absoluteUrl()` (which always points at the canonical
+ * production domain, correct for SEO tags but wrong here): this URL must
+ * actually be fetchable by giscus's iframe *right now*, from whatever
+ * deploy this page is actually running on. Pointing it at production when
+ * running on canary — or any environment production hasn't caught up to
+ * yet — 404s, and giscus silently falls back to its own default theme
+ * instead of ours, which is exactly why toggling light/dark previously
+ * looked broken: the widget never successfully loaded either custom theme
+ * file, so it wasn't tracking our toggle at all. `window.location.origin`
+ * always matches the host actually serving this request. Only called from
+ * client-side effects below (never during SSR), so `window` is safe here.
  */
 function giscusThemeUrl(theme: Theme): string {
-  return absoluteUrl(`/giscus/${theme}.css`)
+  return `${window.location.origin}/giscus/${theme}.css`
 }
 
 export interface GiscusCommentsProps {
