@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { latestPostsQueryOptions } from '../services/posts.ts'
 import { buildPageHead } from '../lib/seo/page-head.ts'
+import { PostListEntry } from '../components/post-list-entry.tsx'
 
 export const Route = createFileRoute('/')({
   head: () =>
@@ -15,15 +16,6 @@ export const Route = createFileRoute('/')({
     context.queryClient.ensureQueryData(latestPostsQueryOptions()),
   component: Home,
 })
-
-function formatPostDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'UTC',
-  })
-}
 
 export function Home() {
   const { data: posts } = useSuspenseQuery(latestPostsQueryOptions())
@@ -42,9 +34,17 @@ export function Home() {
       </section>
 
       <section className="mt-16">
-        <h2 className="text-xl font-semibold text-ink">
-          Latest from the journal
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-ink">
+            Latest from the journal
+          </h2>
+          <Link
+            to="/journal"
+            className="text-sm font-medium text-accent no-underline hover:underline"
+          >
+            View more →
+          </Link>
+        </div>
 
         {posts.length === 0 ? (
           <p className="mt-4 text-ink-muted">
@@ -53,23 +53,7 @@ export function Home() {
         ) : (
           <ul className="mt-6 space-y-10">
             {posts.map((post) => (
-              <li
-                key={post.slug}
-                className="border-b border-border pb-10 last:border-b-0 last:pb-0"
-              >
-                {post.thumbnail && (
-                  <img
-                    src={post.thumbnail}
-                    alt=""
-                    className="mb-4 h-48 w-full rounded object-cover"
-                  />
-                )}
-                <h3 className="text-lg font-semibold text-ink">{post.title}</h3>
-                <p className="mt-1 text-sm text-ink-muted">
-                  <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-                </p>
-                <p className="mt-3 text-ink-muted">{post.excerpt}</p>
-              </li>
+              <PostListEntry key={post.slug} entry={post} />
             ))}
           </ul>
         )}

@@ -11,7 +11,7 @@ import {
 import { queryKeysFactory } from './query-keys-factory.ts'
 
 /** How many recent posts the homepage shows. */
-const HOME_POST_COUNT = 5
+const HOME_POST_COUNT = 6
 
 type PostsListVariant =
   | { variant: 'latest' }
@@ -25,6 +25,7 @@ const latestPostSchema = z.object({
   title: z.string().min(1),
   date: z.iso.date(),
   excerpt: z.string().min(1),
+  tags: z.array(z.string().min(1)),
   thumbnail: z.string().min(1).optional(),
 })
 
@@ -39,6 +40,7 @@ const getLatestPosts = createServerFn({ method: 'GET' }).handler(async () => {
       title: post.title,
       date: toIsoDateString(post.date),
       excerpt: post.excerpt,
+      tags: post.tags,
       thumbnail: post.thumbnail,
     })),
   )
