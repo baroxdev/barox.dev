@@ -31,7 +31,9 @@ export function PostListEntry({ entry }: { entry: PostListEntryData }) {
         <Link
           to="/journal/$slug"
           params={{ slug: entry.slug }}
+          viewTransition
           className="text-ink no-underline hover:text-accent"
+          style={{ viewTransitionName: `post-title-${entry.slug}` }}
         >
           {entry.title}
         </Link>

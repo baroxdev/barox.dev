@@ -130,6 +130,30 @@ kbd {
   }
 }
 
+/* View Transitions (#16): PostListEntry's title Link and the post detail
+   page's <h1> share a `post-title-${slug}` view-transition-name (see
+   post-list-entry.tsx / journal_.$slug.tsx), so the browser morphs the
+   title between its list position and its article-heading position instead
+   of cross-fading it like the rest of the page. TanStack Router's `Link
+   viewTransition` prop wraps the navigation in `document.startViewTransition`
+   only when the browser supports it — unsupported browsers just get a
+   normal navigation, no fallback code needed here. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: 220ms;
+  }
+}
+
+/* Users who've asked for less motion get an instant swap instead of any
+   cross-fade/morph animation, not just a shorter one. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Shiki (parsePost, content-pipeline, via shiki-code-figure.ts) is
    configured with defaultColor: false, so it only declares
    --shiki-light/--shiki-dark/--shiki-*-bg custom properties per element —
