@@ -86,7 +86,7 @@ function Post() {
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         {post.thumbnail ? (
-          <div className="relative mb-6 overflow-hidden rounded-xl sm:aspect-[16/10]">
+          <div className="relative mb-6 min-h-72 overflow-hidden rounded-xl sm:aspect-[16/10] sm:min-h-0">
             <img
               src={post.thumbnail}
               alt=""
@@ -97,13 +97,7 @@ function Post() {
                 in either theme — it has nothing to do with the page's own
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
-            {/* In-flow (not absolutely positioned), so below `sm` — where
-                the fixed 16:10 ratio is dropped above — the container's
-                height comes from however much space the title/author
-                actually need instead of clipping a wrapped title. min-h-72
-                is a floor on mobile only; sm:min-h-0 gets out of the way
-                once the 16:10 ratio takes over sizing. */}
-            <div className="relative flex min-h-72 flex-col justify-between p-6 sm:min-h-0">
+            <div className="absolute inset-0 flex flex-col justify-between p-6">
               <div>
                 <time
                   dateTime={post.date}
