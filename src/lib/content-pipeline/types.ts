@@ -29,4 +29,5 @@ export interface RssEntry {
   date: Date
   tags: string[]
   link: string
+  excerpt: string
 }

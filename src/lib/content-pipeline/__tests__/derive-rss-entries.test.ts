@@ -9,6 +9,7 @@ describe('deriveRssEntries', () => {
       title: 'A Post',
       date: new Date('2026-05-01'),
       tags: ['career'],
+      excerpt: 'A short summary.',
     })
 
     const [entry] = deriveRssEntries([post])
@@ -19,6 +20,7 @@ describe('deriveRssEntries', () => {
       date: new Date('2026-05-01'),
       tags: ['career'],
       link: '/journal/a-post',
+      excerpt: 'A short summary.',
     })
   })
 

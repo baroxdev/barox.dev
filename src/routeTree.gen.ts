@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as CvRouteImport } from './routes/cv'
 import { Route as AboutRouteImport } from './routes/about'
@@ -20,6 +21,11 @@ import { Route as JournalTagsTagRouteImport } from './routes/journal_.tags.$tag'
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RssDotxmlRoute = RssDotxmlRouteImport.update({
+  id: '/rss.xml',
+  path: '/rss.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JournalRoute = JournalRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/journal/$slug': typeof JournalSlugRoute
   '/journal/tags/$tag': typeof JournalTagsTagRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/journal/$slug': typeof JournalSlugRoute
   '/journal/tags/$tag': typeof JournalTagsTagRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/cv': typeof CvRoute
   '/journal': typeof JournalRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/journal_/$slug': typeof JournalSlugRoute
   '/journal_/tags/$tag': typeof JournalTagsTagRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/cv'
     | '/journal'
+    | '/rss.xml'
     | '/sitemap.xml'
     | '/journal/$slug'
     | '/journal/tags/$tag'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/cv'
     | '/journal'
+    | '/rss.xml'
     | '/sitemap.xml'
     | '/journal/$slug'
     | '/journal/tags/$tag'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/cv'
     | '/journal'
+    | '/rss.xml'
     | '/sitemap.xml'
     | '/journal_/$slug'
     | '/journal_/tags/$tag'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   CvRoute: typeof CvRoute
   JournalRoute: typeof JournalRoute
+  RssDotxmlRoute: typeof RssDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   JournalSlugRoute: typeof JournalSlugRoute
   JournalTagsTagRoute: typeof JournalTagsTagRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rss.xml': {
+      id: '/rss.xml'
+      path: '/rss.xml'
+      fullPath: '/rss.xml'
+      preLoaderRoute: typeof RssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journal': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   CvRoute: CvRoute,
   JournalRoute: JournalRoute,
+  RssDotxmlRoute: RssDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   JournalSlugRoute: JournalSlugRoute,
   JournalTagsTagRoute: JournalTagsTagRoute,
