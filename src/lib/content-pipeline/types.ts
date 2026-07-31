@@ -11,6 +11,8 @@ export interface Post {
   thumbnail?: string
   /** Auto-generated og:image/JSON-LD fallback when there's no thumbnail — never shown as an on-site banner (it duplicates the page's own title/tags/author/date). */
   ogImage?: string
+  /** AI-generated (scripts/sync-takeaways.ts), frozen once set — see that script for the regenerate-by-deleting-the-field model shared with thumbnail/ogImage. Absent whenever generation was skipped (no API key, request failure). */
+  keyTakeaways?: string[]
 }
 
 export interface JournalIndexEntry {

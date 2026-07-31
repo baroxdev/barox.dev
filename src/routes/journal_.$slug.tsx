@@ -160,6 +160,24 @@ function Post() {
         )}
       </header>
 
+      {post.keyTakeaways && post.keyTakeaways.length > 0 && (
+        <div className="mt-10 rounded-lg border border-border p-5">
+          <p className="text-sm font-semibold tracking-widest text-accent uppercase">
+            Key Takeaways
+          </p>
+          <ul className="mt-3 space-y-2">
+            {post.keyTakeaways.map((point) => (
+              <li key={point} className="flex gap-2 text-ink">
+                <span aria-hidden="true" className="text-accent">
+                  •
+                </span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="prose prose-lg prose-with-sidenotes mt-10 max-w-none">
         <MDXContent components={MDX_COMPONENTS} />
       </div>

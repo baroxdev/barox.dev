@@ -10,6 +10,9 @@ export const postFrontmatterSchema = z.object({
   published: z.boolean(),
   thumbnail: z.string().min(1, 'thumbnail must not be empty').optional(),
   ogImage: z.string().min(1, 'ogImage must not be empty').optional(),
+  keyTakeaways: z
+    .array(z.string().min(1, 'keyTakeaways must not contain empty strings'))
+    .optional(),
 })
 
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>
