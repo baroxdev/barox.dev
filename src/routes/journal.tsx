@@ -35,6 +35,10 @@ export function Journal() {
           ))}
         </ul>
       )}
+
+      <p className="mt-16 border-t border-border pt-6 text-sm text-ink-muted">
+        <a href="/rss.xml">Subscribe via RSS</a>
+      </p>
     </main>
   )
 }
