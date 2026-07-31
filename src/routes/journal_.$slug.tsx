@@ -86,7 +86,12 @@ function Post() {
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         {post.thumbnail ? (
-          <div className="relative mb-6 overflow-hidden rounded-xl sm:aspect-[16/10]">
+          <div className="relative -mx-6 -mt-16 mb-6 min-h-72 overflow-hidden rounded-none sm:mx-0 sm:mt-0 sm:aspect-[16/10] sm:min-h-0 sm:rounded-xl">
+            {/* Full-bleed on mobile: negative margins cancel out the
+                journal-layout main's px-6/pt-16 so the hero touches the
+                viewport's top/left/right edges instead of floating inside
+                the page's padding. Reset back to inset + rounded from sm
+                up, alongside the padded date/title block below. */}
             <img
               src={post.thumbnail}
               alt=""
@@ -97,14 +102,8 @@ function Post() {
                 in either theme — it has nothing to do with the page's own
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
-            {/* In-flow (not absolutely positioned), so below `sm` — where
-                the fixed 16:10 ratio is dropped above — the container's
-                height comes from however much space the title/author
-                actually need instead of clipping a wrapped title. min-h-72
-                is a floor on mobile only; sm:min-h-0 gets out of the way
-                once the 16:10 ratio takes over sizing. */}
-            <div className="relative flex min-h-72 flex-col justify-between p-6 sm:min-h-0">
-              <div>
+            <div className="absolute inset-0 flex flex-col justify-between">
+              <div className="px-5 pt-5 sm:p-6">
                 <time
                   dateTime={post.date}
                   className="text-xs font-semibold tracking-wide text-white/75 uppercase"
@@ -118,7 +117,7 @@ function Post() {
                   {post.title}
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 p-5 sm:p-6 sm:pt-0">
                 <img
                   src="/images/avatar.png"
                   alt=""
