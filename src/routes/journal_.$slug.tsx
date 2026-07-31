@@ -13,6 +13,10 @@ import { cv } from '../content/cv.ts'
 
 const MDX_COMPONENTS = { Sidenote, Image, figure: CodeBlock }
 
+/** Fluid title size: 30px at small viewports up to a 56px ceiling around
+ * desktop widths (~1024px), instead of jumping between fixed breakpoints. */
+const POST_TITLE_SIZE = 'text-[clamp(1.875rem,4vw+1rem,3.5rem)] leading-tight'
+
 /** og:image/JSON-LD source: the manual thumbnail if there is one, otherwise the auto-generated fallback. Never the reverse — a manual photo is always preferred over a generated card. */
 function socialImage(post: PostDetail): string | undefined {
   return post.thumbnail ?? post.ogImage
@@ -82,18 +86,23 @@ function Post() {
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         {post.thumbnail ? (
-          <div className="relative mb-6 aspect-[2/1] overflow-hidden rounded-xl">
+          <div className="relative mb-6 overflow-hidden rounded-xl">
             <img
               src={post.thumbnail}
               alt=""
-              className="h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
             {/* Literal black, not a --color-ink token: the overlay's job is
                 guaranteeing white-text legibility over an arbitrary photo,
                 in either theme — it has nothing to do with the page's own
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 flex flex-col justify-between p-6">
+            {/* In-flow (not absolutely positioned) so the container's
+                height comes from however much space the title/author
+                actually need — a long, multi-line title on a narrow
+                viewport grows the box instead of getting clipped by a
+                fixed aspect-ratio. min-h is a floor, not a cap. */}
+            <div className="relative flex min-h-72 flex-col justify-between p-6">
               <div>
                 <time
                   dateTime={post.date}
@@ -102,7 +111,7 @@ function Post() {
                   {formatPostDate(post.date)}
                 </time>
                 <h1
-                  className="mt-1 text-3xl font-bold text-white"
+                  className={`mt-1 font-bold text-white ${POST_TITLE_SIZE}`}
                   style={{ viewTransitionName: `post-title-${post.slug}` }}
                 >
                   {post.title}
@@ -124,7 +133,7 @@ function Post() {
         ) : (
           <>
             <h1
-              className="text-3xl font-bold text-ink"
+              className={`font-bold text-ink ${POST_TITLE_SIZE}`}
               style={{ viewTransitionName: `post-title-${post.slug}` }}
             >
               {post.title}
