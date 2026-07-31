@@ -103,11 +103,7 @@ function Post() {
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
             <div className="absolute inset-0 flex flex-col justify-between">
-              {/* Full-bleed on mobile — no side padding, so the title uses
-                  the whole card width and wraps to fewer/shorter lines
-                  instead of feeling boxed in by an inset column. Padded
-                  again from sm up, where the 16:10 ratio gives it room. */}
-              <div className="pt-5 sm:p-6">
+              <div className="px-5 pt-5 sm:p-6">
                 <time
                   dateTime={post.date}
                   className="text-xs font-semibold tracking-wide text-white/75 uppercase"
