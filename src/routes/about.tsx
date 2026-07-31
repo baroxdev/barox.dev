@@ -13,16 +13,6 @@ export const Route = createFileRoute('/about')({
   component: About,
 })
 
-/** Picks a fixed-aspect-ratio .mark-circle variant by length instead of
- * stretching one shape to fit any word — see docs/research/hand-drawn-annotations.md. */
-function MarkCircle({ children }: { children: string }) {
-  const variant =
-    children.length <= 6 ? 'narrow' : children.length <= 12 ? 'medium' : 'wide'
-  return (
-    <span className={`mark-circle mark-circle--${variant}`}>{children}</span>
-  )
-}
-
 function About() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -42,9 +32,8 @@ function About() {
           <p>
             I'm a Software Engineer based in Ho Chi Minh City, Vietnam. I build
             web products end to end — frontend architecture, backend APIs, and
-            the occasional AI feature that's{' '}
-            <MarkCircle>actually useful</MarkCircle>, not bolted on for the
-            pitch deck.
+            the occasional AI feature that's actually useful, not bolted on
+            for the pitch deck.
           </p>
 
           <p>
@@ -57,10 +46,9 @@ function About() {
           </p>
 
           <p>
-            barox.dev isn't a portfolio — it's a{' '}
-            <MarkCircle>journal</MarkCircle>. Debugging rabbit holes,
-            architecture decisions I'd make differently in hindsight, the small
-            lessons that don't fit in a pull request description.
+            barox.dev isn't a portfolio — it's a journal. Debugging rabbit
+            holes, architecture decisions I'd make differently in hindsight,
+            the small lessons that don't fit in a pull request description.
           </p>
 
           <p>
