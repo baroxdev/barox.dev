@@ -9,6 +9,7 @@ import { Sidenote } from '../components/mdx/sidenote.tsx'
 import { GiscusComments } from '../components/giscus-comments.tsx'
 import { buildPageHead } from '../lib/seo/page-head.ts'
 import { SITE_URL } from '../lib/seo/site-url.ts'
+import { cv } from '../content/cv.ts'
 
 const MDX_COMPONENTS = { Sidenote, Image, figure: CodeBlock }
 
@@ -81,7 +82,7 @@ function Post() {
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         {post.thumbnail ? (
-          <div className="relative mb-6 aspect-[2/1] overflow-hidden rounded-lg">
+          <div className="relative mb-6 aspect-[2/1] overflow-hidden rounded-xl">
             <img
               src={post.thumbnail}
               alt=""
@@ -92,26 +93,31 @@ function Post() {
                 in either theme — it has nothing to do with the page's own
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 flex flex-col justify-end gap-2 p-6">
-              <time
-                dateTime={post.date}
-                className="text-xs font-semibold tracking-wide text-white/75 uppercase"
-              >
-                {formatPostDate(post.date)}
-              </time>
-              <h1
-                className="text-3xl font-bold text-white"
-                style={{ viewTransitionName: `post-title-${post.slug}` }}
-              >
-                {post.title}
-              </h1>
-              <div className="mt-1 flex items-center gap-2">
+            <div className="absolute inset-0 flex flex-col justify-between p-6">
+              <div>
+                <time
+                  dateTime={post.date}
+                  className="text-xs font-semibold tracking-wide text-white/75 uppercase"
+                >
+                  {formatPostDate(post.date)}
+                </time>
+                <h1
+                  className="mt-1 text-3xl font-bold text-white"
+                  style={{ viewTransitionName: `post-title-${post.slug}` }}
+                >
+                  {post.title}
+                </h1>
+              </div>
+              <div className="flex items-center gap-3">
                 <img
                   src="/images/avatar.png"
                   alt=""
-                  className="h-7 w-7 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover"
                 />
-                <span className="text-sm text-white/85">Barox</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">Barox</p>
+                  <p className="text-xs text-white/70">{cv.title}</p>
+                </div>
               </div>
             </div>
           </div>
