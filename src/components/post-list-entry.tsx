@@ -20,27 +20,64 @@ function formatPostDate(isoDate: string): string {
 export function PostListEntry({ entry }: { entry: PostListEntryData }) {
   return (
     <li className="border-b border-border pb-10 last:border-b-0 last:pb-0">
-      {entry.thumbnail && (
-        <img
-          src={entry.thumbnail}
-          alt=""
-          className="mb-4 h-48 w-full rounded object-cover"
-        />
-      )}
-      <h2 className="text-lg font-semibold text-ink">
+      {entry.thumbnail ? (
         <Link
           to="/journal/$slug"
           params={{ slug: entry.slug }}
           viewTransition
-          className="text-ink no-underline hover:text-accent"
-          style={{ viewTransitionName: `post-title-${entry.slug}` }}
+          className="group relative block aspect-video overflow-hidden rounded-lg no-underline"
         >
-          {entry.title}
+          <img
+            src={entry.thumbnail}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          {/* Literal black, not a --color-ink token: the overlay's job is
+              guaranteeing white-text legibility over an arbitrary photo, in
+              either theme — it has nothing to do with the page's own
+              light/dark palette. */}
+          <div className="absolute inset-0 bg-black/35 transition-colors group-hover:bg-black/45" />
+          <div className="absolute inset-0 flex flex-col justify-end gap-2 p-5">
+            <time
+              dateTime={entry.date}
+              className="text-xs font-semibold tracking-wide text-white/75 uppercase"
+            >
+              {formatPostDate(entry.date)}
+            </time>
+            <h2
+              className="text-xl font-bold text-white"
+              style={{ viewTransitionName: `post-title-${entry.slug}` }}
+            >
+              {entry.title}
+            </h2>
+            <div className="mt-1 flex items-center gap-2">
+              <img
+                src="/images/avatar.png"
+                alt=""
+                className="h-6 w-6 rounded-full object-cover"
+              />
+              <span className="text-sm text-white/85">Barox</span>
+            </div>
+          </div>
         </Link>
-      </h2>
-      <p className="mt-1 text-sm text-ink-muted">
-        <time dateTime={entry.date}>{formatPostDate(entry.date)}</time>
-      </p>
+      ) : (
+        <>
+          <h2 className="text-lg font-semibold text-ink">
+            <Link
+              to="/journal/$slug"
+              params={{ slug: entry.slug }}
+              viewTransition
+              className="text-ink no-underline hover:text-accent"
+              style={{ viewTransitionName: `post-title-${entry.slug}` }}
+            >
+              {entry.title}
+            </Link>
+          </h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            <time dateTime={entry.date}>{formatPostDate(entry.date)}</time>
+          </p>
+        </>
+      )}
       {entry.tags.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-2">
           {entry.tags.map((tag) => (

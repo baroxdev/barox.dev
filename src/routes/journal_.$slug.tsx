@@ -80,22 +80,54 @@ function Post() {
   return (
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
-        {post.thumbnail && (
-          <img
-            src={post.thumbnail}
-            alt=""
-            className="mb-6 h-64 w-full rounded object-cover"
-          />
+        {post.thumbnail ? (
+          <div className="relative mb-6 aspect-[2/1] overflow-hidden rounded-lg">
+            <img
+              src={post.thumbnail}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+            {/* Literal black, not a --color-ink token: the overlay's job is
+                guaranteeing white-text legibility over an arbitrary photo,
+                in either theme — it has nothing to do with the page's own
+                light/dark palette. */}
+            <div className="absolute inset-0 bg-black/35" />
+            <div className="absolute inset-0 flex flex-col justify-end gap-2 p-6">
+              <time
+                dateTime={post.date}
+                className="text-xs font-semibold tracking-wide text-white/75 uppercase"
+              >
+                {formatPostDate(post.date)}
+              </time>
+              <h1
+                className="text-3xl font-bold text-white"
+                style={{ viewTransitionName: `post-title-${post.slug}` }}
+              >
+                {post.title}
+              </h1>
+              <div className="mt-1 flex items-center gap-2">
+                <img
+                  src="/images/avatar.png"
+                  alt=""
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+                <span className="text-sm text-white/85">Barox</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1
+              className="text-3xl font-bold text-ink"
+              style={{ viewTransitionName: `post-title-${post.slug}` }}
+            >
+              {post.title}
+            </h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+            </p>
+          </>
         )}
-        <h1
-          className="text-3xl font-bold text-ink"
-          style={{ viewTransitionName: `post-title-${post.slug}` }}
-        >
-          {post.title}
-        </h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-        </p>
         {post.tags.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
