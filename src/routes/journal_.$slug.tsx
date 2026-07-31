@@ -86,7 +86,12 @@ function Post() {
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
         {post.thumbnail ? (
-          <div className="relative mb-6 min-h-72 overflow-hidden rounded-xl sm:aspect-[16/10] sm:min-h-0">
+          <div className="relative -mx-6 -mt-16 mb-6 min-h-72 overflow-hidden rounded-none sm:mx-0 sm:mt-0 sm:aspect-[16/10] sm:min-h-0 sm:rounded-xl">
+            {/* Full-bleed on mobile: negative margins cancel out the
+                journal-layout main's px-6/pt-16 so the hero touches the
+                viewport's top/left/right edges instead of floating inside
+                the page's padding. Reset back to inset + rounded from sm
+                up, alongside the padded date/title block below. */}
             <img
               src={post.thumbnail}
               alt=""
