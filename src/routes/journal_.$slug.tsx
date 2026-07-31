@@ -87,7 +87,12 @@ function Post() {
             className="mb-6 h-64 w-full rounded object-cover"
           />
         )}
-        <h1 className="text-3xl font-bold text-ink">{post.title}</h1>
+        <h1
+          className="text-3xl font-bold text-ink"
+          style={{ viewTransitionName: `post-title-${post.slug}` }}
+        >
+          {post.title}
+        </h1>
         <p className="mt-2 text-sm text-ink-muted">
           <time dateTime={post.date}>{formatPostDate(post.date)}</time>
         </p>
