@@ -9,5 +9,6 @@ export function deriveRssEntries(posts: Post[]): RssEntry[] {
     date: post.date,
     tags: post.tags,
     link: `/journal/${post.slug}`,
+    excerpt: post.excerpt,
   }))
 }

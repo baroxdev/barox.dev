@@ -34,6 +34,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         rel: 'stylesheet',
         href: appCss,
       },
+      {
+        rel: 'alternate',
+        type: 'application/rss+xml',
+        title: 'barox.dev',
+        href: '/rss.xml',
+      },
     ],
   }),
   shellComponent: RootDocument,

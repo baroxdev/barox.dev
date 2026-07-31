@@ -62,6 +62,7 @@ describe('parsePost against a real post file', () => {
         date: new Date('2026-07-14'),
         tags: ['meta', 'tanstack-start'],
         link: '/journal/building-barox-dev',
+        excerpt: post.excerpt,
       },
     ])
   })
