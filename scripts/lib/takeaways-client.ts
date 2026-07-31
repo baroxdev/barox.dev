@@ -1,9 +1,9 @@
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+import { GoogleGenAI, Type } from '@google/genai'
 
 /** Gemini's free-tier flash model — cheap/fast enough for a script that
  * only ever runs once per new post. Overridable via GEMINI_MODEL since
  * Gemini's model lineup moves faster than this file will get updated. */
-const DEFAULT_MODEL = 'gemini-2.0-flash'
+const DEFAULT_MODEL = 'gemini-3.6-flash'
 
 export interface TakeawaysInput {
   title: string
@@ -38,38 +38,31 @@ function isValidTakeaways(value: unknown): value is string[] {
   )
 }
 
+/**
+ * Uses the official @google/genai SDK's `models.generateContent` (the
+ * stable, documented content-generation call) rather than the newer
+ * `interactions` surface (agentic, multi-step, streaming-first) — this
+ * script just needs one prompt in, one JSON array out.
+ */
 export function createGeminiTakeawaysClient(
   apiKey: string,
   model: string = DEFAULT_MODEL,
 ): TakeawaysClient {
+  const ai = new GoogleGenAI({ apiKey })
+
   return {
     async generate(input) {
-      const response = await fetch(
-        `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: buildPrompt(input) }] }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: { type: 'ARRAY', items: { type: 'STRING' } },
-            },
-          }),
+      const response = await ai.models.generateContent({
+        model,
+        contents: buildPrompt(input),
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
         },
-      )
+      })
 
-      if (!response.ok) {
-        throw new Error(
-          `Gemini API request failed: ${response.status} ${response.statusText}`,
-        )
-      }
-
-      const payload = (await response.json()) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[]
-      }
-      const text = payload.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!text) throw new Error('Gemini response had no candidate text')
+      const text = response.text
+      if (!text) throw new Error('Gemini response had no text output')
 
       const parsed: unknown = JSON.parse(text)
       if (!isValidTakeaways(parsed)) {

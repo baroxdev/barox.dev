@@ -1,67 +1,75 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createGeminiTakeawaysClient } from '../takeaways-client.ts'
 
-function jsonResponse(body: unknown, ok = true, status = 200) {
-  return {
-    ok,
-    status,
-    statusText: ok ? 'OK' : 'Error',
-    json: async () => body,
-  } as Response
-}
+const { generateContentMock } = vi.hoisted(() => ({
+  generateContentMock: vi.fn(),
+}))
 
-function candidateResponse(takeaways: unknown) {
-  return jsonResponse({
-    candidates: [
-      { content: { parts: [{ text: JSON.stringify(takeaways) }] } },
-    ],
-  })
+// The real @google/genai SDK makes network calls internally, so it's mocked
+// at the module level rather than mocking fetch — this pins the test to
+// the SDK's public surface (models.generateContent), not its transport.
+vi.mock('@google/genai', () => ({
+  // A real `function`, not an arrow — the mock is invoked via `new` in the
+  // source (`new GoogleGenAI(...)`), and arrow functions can never be
+  // constructors.
+  GoogleGenAI: vi.fn().mockImplementation(function GoogleGenAIMock() {
+    return { models: { generateContent: generateContentMock } }
+  }),
+  Type: { ARRAY: 'ARRAY', STRING: 'STRING' },
+}))
+
+const { createGeminiTakeawaysClient } = await import('../takeaways-client.ts')
+
+function textResponse(takeaways: unknown) {
+  return { text: JSON.stringify(takeaways) }
 }
 
 describe('createGeminiTakeawaysClient', () => {
   afterEach(() => {
-    vi.unstubAllGlobals()
+    generateContentMock.mockReset()
   })
 
-  it('POSTs the title/body prompt to the Gemini API with the key and default model', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(candidateResponse(['A.', 'B.', 'C.']))
-    vi.stubGlobal('fetch', fetchMock)
+  it('calls models.generateContent with the title/body prompt, default model, and JSON array response config', async () => {
+    generateContentMock.mockResolvedValue(textResponse(['A.', 'B.', 'C.']))
 
     const client = createGeminiTakeawaysClient('test-key')
-    await client.generate({ title: 'My Post', body: 'Some plain text.' })
+    const result = await client.generate({
+      title: 'My Post',
+      body: 'Some plain text.',
+    })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=test-key',
-    )
-    expect(init.method).toBe('POST')
-    const body = JSON.parse(init.body as string) as {
-      contents: { parts: { text: string }[] }[]
-    }
-    expect(body.contents[0]?.parts[0]?.text).toContain('My Post')
-    expect(body.contents[0]?.parts[0]?.text).toContain('Some plain text.')
+    expect(result).toEqual(['A.', 'B.', 'C.'])
+    expect(generateContentMock).toHaveBeenCalledTimes(1)
+
+    const [params] = generateContentMock.mock.calls[0] as [
+      {
+        model: string
+        contents: string
+        config: { responseMimeType: string; responseSchema: unknown }
+      },
+    ]
+    expect(params.model).toBe('gemini-3.6-flash')
+    expect(params.contents).toContain('My Post')
+    expect(params.contents).toContain('Some plain text.')
+    expect(params.config.responseMimeType).toBe('application/json')
+    expect(params.config.responseSchema).toEqual({
+      type: 'ARRAY',
+      items: { type: 'STRING' },
+    })
   })
 
   it('uses a custom model when one is passed', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(candidateResponse(['A.', 'B.', 'C.']))
-    vi.stubGlobal('fetch', fetchMock)
+    generateContentMock.mockResolvedValue(textResponse(['A.', 'B.', 'C.']))
 
     const client = createGeminiTakeawaysClient('test-key', 'gemini-custom')
     await client.generate({ title: 'T', body: 'B' })
 
-    const [url] = fetchMock.mock.calls[0] as [string]
-    expect(url).toContain('/models/gemini-custom:generateContent')
+    const [params] = generateContentMock.mock.calls[0] as [{ model: string }]
+    expect(params.model).toBe('gemini-custom')
   })
 
   it('returns the parsed takeaways array on a valid 3-5 item response', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(candidateResponse(['A.', 'B.', 'C.', 'D.'])),
+    generateContentMock.mockResolvedValue(
+      textResponse(['A.', 'B.', 'C.', 'D.']),
     )
 
     const client = createGeminiTakeawaysClient('test-key')
@@ -70,62 +78,53 @@ describe('createGeminiTakeawaysClient', () => {
     expect(result).toEqual(['A.', 'B.', 'C.', 'D.'])
   })
 
-  it('throws when the HTTP response is not ok', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(jsonResponse({}, false, 429)),
+  it('throws when the response has no text output', async () => {
+    generateContentMock.mockResolvedValue({ text: undefined })
+
+    const client = createGeminiTakeawaysClient('test-key')
+
+    await expect(
+      client.generate({ title: 'T', body: 'B' }),
+    ).rejects.toThrow(/no text output/)
+  })
+
+  it('throws when the response has too few takeaways', async () => {
+    generateContentMock.mockResolvedValue(textResponse(['A.']))
+
+    const client = createGeminiTakeawaysClient('test-key')
+
+    await expect(client.generate({ title: 'T', body: 'B' })).rejects.toThrow(
+      /3-5/,
+    )
+  })
+
+  it('throws when the response has too many takeaways', async () => {
+    generateContentMock.mockResolvedValue(
+      textResponse(['A.', 'B.', 'C.', 'D.', 'E.', 'F.']),
     )
 
     const client = createGeminiTakeawaysClient('test-key')
 
     await expect(client.generate({ title: 'T', body: 'B' })).rejects.toThrow(
-      /429/,
+      /3-5/,
     )
-  })
-
-  it('throws when the response has too few takeaways', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(candidateResponse(['A.'])))
-
-    const client = createGeminiTakeawaysClient('test-key')
-
-    await expect(
-      client.generate({ title: 'T', body: 'B' }),
-    ).rejects.toThrow(/3-5/)
-  })
-
-  it('throws when the response has too many takeaways', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        candidateResponse(['A.', 'B.', 'C.', 'D.', 'E.', 'F.']),
-      ),
-    )
-
-    const client = createGeminiTakeawaysClient('test-key')
-
-    await expect(
-      client.generate({ title: 'T', body: 'B' }),
-    ).rejects.toThrow(/3-5/)
   })
 
   it('throws when a candidate item is an empty string', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(candidateResponse(['A.', '', 'C.'])),
-    )
+    generateContentMock.mockResolvedValue(textResponse(['A.', '', 'C.']))
 
     const client = createGeminiTakeawaysClient('test-key')
 
     await expect(client.generate({ title: 'T', body: 'B' })).rejects.toThrow()
   })
 
-  it('throws when the response has no candidate text at all', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({})))
+  it('propagates a rejected generateContent call (e.g. rate limiting) as-is', async () => {
+    generateContentMock.mockRejectedValue(new Error('429 Too Many Requests'))
 
     const client = createGeminiTakeawaysClient('test-key')
 
     await expect(
       client.generate({ title: 'T', body: 'B' }),
-    ).rejects.toThrow(/no candidate text/)
+    ).rejects.toThrow(/429/)
   })
 })
