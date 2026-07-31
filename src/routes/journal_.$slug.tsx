@@ -9,8 +9,13 @@ import { Sidenote } from '../components/mdx/sidenote.tsx'
 import { GiscusComments } from '../components/giscus-comments.tsx'
 import { buildPageHead } from '../lib/seo/page-head.ts'
 import { SITE_URL } from '../lib/seo/site-url.ts'
+import { cv } from '../content/cv.ts'
 
 const MDX_COMPONENTS = { Sidenote, Image, figure: CodeBlock }
+
+/** Fluid title size: 30px at small viewports up to a 56px ceiling around
+ * desktop widths (~1024px), instead of jumping between fixed breakpoints. */
+const POST_TITLE_SIZE = 'text-[clamp(1.875rem,4vw+1rem,3.5rem)] leading-tight'
 
 /** og:image/JSON-LD source: the manual thumbnail if there is one, otherwise the auto-generated fallback. Never the reverse — a manual photo is always preferred over a generated card. */
 function socialImage(post: PostDetail): string | undefined {
@@ -80,22 +85,65 @@ function Post() {
   return (
     <main className="journal-layout mx-auto max-w-3xl px-6 py-16">
       <header>
-        {post.thumbnail && (
-          <img
-            src={post.thumbnail}
-            alt=""
-            className="mb-6 h-64 w-full rounded object-cover"
-          />
+        {post.thumbnail ? (
+          <div className="relative mb-6 overflow-hidden rounded-xl sm:aspect-[16/10]">
+            <img
+              src={post.thumbnail}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            {/* Literal black, not a --color-ink token: the overlay's job is
+                guaranteeing white-text legibility over an arbitrary photo,
+                in either theme — it has nothing to do with the page's own
+                light/dark palette. */}
+            <div className="absolute inset-0 bg-black/35" />
+            {/* In-flow (not absolutely positioned), so below `sm` — where
+                the fixed 16:10 ratio is dropped above — the container's
+                height comes from however much space the title/author
+                actually need instead of clipping a wrapped title. min-h-72
+                is a floor on mobile only; sm:min-h-0 gets out of the way
+                once the 16:10 ratio takes over sizing. */}
+            <div className="relative flex min-h-72 flex-col justify-between p-6 sm:min-h-0">
+              <div>
+                <time
+                  dateTime={post.date}
+                  className="text-xs font-semibold tracking-wide text-white/75 uppercase"
+                >
+                  {formatPostDate(post.date)}
+                </time>
+                <h1
+                  className={`mt-1 font-bold text-white ${POST_TITLE_SIZE}`}
+                  style={{ viewTransitionName: `post-title-${post.slug}` }}
+                >
+                  {post.title}
+                </h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <img
+                  src="/images/avatar.png"
+                  alt=""
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-white">Barox</p>
+                  <p className="text-xs text-white/70">{cv.title}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1
+              className={`font-bold text-ink ${POST_TITLE_SIZE}`}
+              style={{ viewTransitionName: `post-title-${post.slug}` }}
+            >
+              {post.title}
+            </h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+            </p>
+          </>
         )}
-        <h1
-          className="text-3xl font-bold text-ink"
-          style={{ viewTransitionName: `post-title-${post.slug}` }}
-        >
-          {post.title}
-        </h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-        </p>
         {post.tags.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
