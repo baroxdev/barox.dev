@@ -97,8 +97,12 @@ function Post() {
                 in either theme — it has nothing to do with the page's own
                 light/dark palette. */}
             <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 flex flex-col justify-between p-6">
-              <div>
+            <div className="absolute inset-0 flex flex-col justify-between">
+              {/* Full-bleed on mobile — no side padding, so the title uses
+                  the whole card width and wraps to fewer/shorter lines
+                  instead of feeling boxed in by an inset column. Padded
+                  again from sm up, where the 16:10 ratio gives it room. */}
+              <div className="pt-5 sm:p-6">
                 <time
                   dateTime={post.date}
                   className="text-xs font-semibold tracking-wide text-white/75 uppercase"
@@ -112,7 +116,7 @@ function Post() {
                   {post.title}
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 p-5 sm:p-6 sm:pt-0">
                 <img
                   src="/images/avatar.png"
                   alt=""
