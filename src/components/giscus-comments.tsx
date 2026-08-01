@@ -9,28 +9,6 @@ const GISCUS_ORIGIN = 'https://giscus.app'
  * up on the skeleton and showing a fallback link instead (issue #52). */
 const READY_TIMEOUT_MS = 8000
 
-/**
- * giscus's iframe is a separate origin from ours, so it can't read our
- * page's CSS custom properties — its "custom theme" mechanism is instead a
- * URL to a real, publicly-hosted CSS file (see public/giscus/{light,dark}.css,
- * literal hex values duplicated from src/tokens/colors.css).
- *
- * Deliberately NOT `absoluteUrl()` (which always points at the canonical
- * production domain, correct for SEO tags but wrong here): this URL must
- * actually be fetchable by giscus's iframe *right now*, from whatever
- * deploy this page is actually running on. Pointing it at production when
- * running on canary — or any environment production hasn't caught up to
- * yet — 404s, and giscus silently falls back to its own default theme
- * instead of ours, which is exactly why toggling light/dark previously
- * looked broken: the widget never successfully loaded either custom theme
- * file, so it wasn't tracking our toggle at all. `window.location.origin`
- * always matches the host actually serving this request. Only called from
- * client-side effects below (never during SSR), so `window` is safe here.
- */
-function giscusThemeUrl(theme: Theme): string {
-  return `${window.location.origin}/giscus/${theme}.css`
-}
-
 /** True for giscus's own "iframe has real content and a height" signal —
  * see lib/types/giscus.ts upstream. Fired on every content resize, but the
  * first one is a reliable "the widget actually loaded" event, which is all
@@ -145,7 +123,7 @@ export function GiscusComments({
     script.setAttribute('data-strict', '1')
     script.setAttribute('data-reactions-enabled', '1')
     script.setAttribute('data-input-position', 'top')
-    script.setAttribute('data-theme', giscusThemeUrl(initialTheme))
+    script.setAttribute('data-theme', initialTheme)
     script.setAttribute('data-lang', 'en')
     script.setAttribute('data-loading', 'lazy')
     container.appendChild(script)
@@ -182,7 +160,7 @@ export function GiscusComments({
       'iframe.giscus-frame',
     )
     iframe?.contentWindow?.postMessage(
-      { giscus: { setConfig: { theme: giscusThemeUrl(theme) } } },
+      { giscus: { setConfig: { theme } } },
       GISCUS_ORIGIN,
     )
   }, [theme])

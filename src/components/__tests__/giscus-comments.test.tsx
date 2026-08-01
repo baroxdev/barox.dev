@@ -58,25 +58,17 @@ describe('GiscusComments', () => {
     expect(script?.getAttribute('data-loading')).toBe('lazy')
   })
 
-  // Regression test for a real bug: data-theme (and the later postMessage
-  // theme update) must point at whatever origin is actually serving the
-  // page, not the hardcoded canonical production domain (what `absoluteUrl`
-  // from lib/seo/site-url.ts gives you). Pointing at production while
-  // running on canary — or anywhere production hasn't caught up to — 404s,
-  // and giscus silently falls back to its own default theme instead of
-  // ours, which is why toggling light/dark previously looked broken: the
-  // widget never actually loaded either custom theme file.
-  it('points data-theme at the current origin, not a hardcoded production domain', () => {
+  it('uses giscus\'s built-in "light" preset for data-theme by default', () => {
     const { container } = render(
       <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
     )
 
-    const themeUrl = container.querySelector('script')?.getAttribute('data-theme')
-    expect(themeUrl).toBe(`${window.location.origin}/giscus/light.css`)
-    expect(themeUrl).not.toContain('barox.dev')
+    expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
+      'light',
+    )
   })
 
-  it('points data-theme at the dark theme CSS when the document is already in dark mode', () => {
+  it('uses giscus\'s built-in "dark" preset when the document is already in dark mode', () => {
     document.documentElement.classList.add('dark')
 
     const { container } = render(
@@ -84,11 +76,11 @@ describe('GiscusComments', () => {
     )
 
     expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
-      `${window.location.origin}/giscus/dark.css`,
+      'dark',
     )
   })
 
-  it('pushes the current-origin theme URL into the already-loaded iframe via postMessage when the theme changes', () => {
+  it('pushes the built-in theme preset into the already-loaded iframe via postMessage when the theme changes', () => {
     const { container, rerender } = render(
       <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
     )
@@ -115,7 +107,7 @@ describe('GiscusComments', () => {
     rerender(<GiscusComments repoId="R_test123" categoryId="DIC_test456" />)
 
     expect(postMessage).toHaveBeenCalledWith(
-      { giscus: { setConfig: { theme: `${window.location.origin}/giscus/dark.css` } } },
+      { giscus: { setConfig: { theme: 'dark' } } },
       'https://giscus.app',
     )
   })
