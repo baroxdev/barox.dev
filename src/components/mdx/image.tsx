@@ -24,7 +24,7 @@ export function Image({
     <img
       src={src}
       alt={alt ?? ''}
-      className={`h-auto max-w-full rounded${variantClassName}`}
+      className={`h-auto mx-auto max-w-full rounded-xl ${variantClassName}`}
     />
   )
 }

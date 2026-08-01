@@ -259,7 +259,7 @@ kbd {
      leaving all the extra width as reserved space on the right, not split
      evenly by centering. */
   .journal-layout {
-    max-width: calc(var(--content-col) + var(--margin-gap) + var(--margin-col));
+    position: relative;
   }
 
   .journal-layout > header,
@@ -276,20 +276,6 @@ kbd {
     display: none;
   }
 
-  /* Floats naturally stack without overlapping when several occur close
-     together in the flow (each is placed no higher than the bottom of the
-     prior one on the same side) — this is what satisfies "multiple
-     sidenotes render without colliding" with no JS collision detection.
-     Right-variant images (#9) share this exact mechanism so they interleave
-     and stack with sidenotes in the same column instead of overlapping. */
-  .sidenote-content,
-  .image-right {
-    float: right;
-    clear: right;
-    width: var(--margin-col);
-    margin-right: calc(-1 * (var(--margin-gap) + var(--margin-col)));
-  }
-
   .sidenote-content {
     display: block;
     position: relative;
@@ -299,14 +285,14 @@ kbd {
     padding: 0;
   }
 
-  /* Full-variant images (#9) break out of the prose column into the same
-     reserved space the margin column occupies, so on desktop they span the
-     entire widened .journal-layout width rather than just the text column. */
-  .image-full {
-    display: block;
-    /* Overrides the base max-w-full utility (max-width: 100%), which would
-       otherwise clamp the calc() below straight back down to 100%. */
-    max-width: none;
-    width: calc(100% + var(--margin-gap) + var(--margin-col));
-  }
+}
+
+.image-full {
+  display: block;
+  max-width: none;
+  width: 100%;
+  margin-left: calc(-1 * (100vw - 100%) / 2);
+  margin-right: calc(-1 * (100vw - 100%) / 2);
+  width: calc(100% + (100vw - 100%));
+  border-radius: 0px!important;
 }
