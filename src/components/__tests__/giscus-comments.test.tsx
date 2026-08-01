@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GiscusComments } from '../giscus-comments.tsx'
 import { useTheme } from '../../theme/use-theme.ts'
+
+function dispatchGiscusMessage(data: unknown, origin = 'https://giscus.app') {
+  act(() => {
+    window.dispatchEvent(new MessageEvent('message', { data, origin }))
+  })
+}
 
 vi.mock('../../theme/use-theme.ts', () => ({
   useTheme: vi.fn(),
@@ -52,25 +58,17 @@ describe('GiscusComments', () => {
     expect(script?.getAttribute('data-loading')).toBe('lazy')
   })
 
-  // Regression test for a real bug: data-theme (and the later postMessage
-  // theme update) must point at whatever origin is actually serving the
-  // page, not the hardcoded canonical production domain (what `absoluteUrl`
-  // from lib/seo/site-url.ts gives you). Pointing at production while
-  // running on canary — or anywhere production hasn't caught up to — 404s,
-  // and giscus silently falls back to its own default theme instead of
-  // ours, which is why toggling light/dark previously looked broken: the
-  // widget never actually loaded either custom theme file.
-  it('points data-theme at the current origin, not a hardcoded production domain', () => {
+  it('uses giscus\'s built-in "light" preset for data-theme by default', () => {
     const { container } = render(
       <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
     )
 
-    const themeUrl = container.querySelector('script')?.getAttribute('data-theme')
-    expect(themeUrl).toBe(`${window.location.origin}/giscus/light.css`)
-    expect(themeUrl).not.toContain('barox.dev')
+    expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
+      'light',
+    )
   })
 
-  it('points data-theme at the dark theme CSS when the document is already in dark mode', () => {
+  it('uses giscus\'s built-in "dark" preset when the document is already in dark mode', () => {
     document.documentElement.classList.add('dark')
 
     const { container } = render(
@@ -78,20 +76,23 @@ describe('GiscusComments', () => {
     )
 
     expect(container.querySelector('script')?.getAttribute('data-theme')).toBe(
-      `${window.location.origin}/giscus/dark.css`,
+      'dark',
     )
   })
 
-  it('pushes the current-origin theme URL into the already-loaded iframe via postMessage when the theme changes', () => {
+  it('pushes the built-in theme preset into the already-loaded iframe via postMessage when the theme changes', () => {
     const { container, rerender } = render(
       <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
     )
 
     // Simulate giscus's own client.js having already created its iframe —
-    // we can't run the real third-party script in a unit test.
+    // we can't run the real third-party script in a unit test. Append next
+    // to the injected script (its actual parent), not any particular
+    // wrapper element, since that's an implementation detail of the
+    // skeleton/fallback markup around it.
     const iframe = document.createElement('iframe')
     iframe.className = 'giscus-frame'
-    container.firstElementChild?.appendChild(iframe)
+    container.querySelector('script')?.parentElement?.appendChild(iframe)
     const postMessage = vi.fn()
     Object.defineProperty(iframe, 'contentWindow', {
       value: { postMessage },
@@ -106,8 +107,92 @@ describe('GiscusComments', () => {
     rerender(<GiscusComments repoId="R_test123" categoryId="DIC_test456" />)
 
     expect(postMessage).toHaveBeenCalledWith(
-      { giscus: { setConfig: { theme: `${window.location.origin}/giscus/dark.css` } } },
+      { giscus: { setConfig: { theme: 'dark' } } },
       'https://giscus.app',
     )
+  })
+
+  it('shows a skeleton placeholder before giscus has signaled it loaded', () => {
+    const { container } = render(
+      <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
+    )
+
+    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+    expect(container.textContent).not.toContain("didn’t load")
+  })
+
+  it('hides the skeleton once giscus posts its first resizeHeight message', () => {
+    const { container } = render(
+      <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
+    )
+    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+
+    dispatchGiscusMessage({ giscus: { resizeHeight: 480 } })
+
+    expect(container.querySelector('.animate-pulse')).toBeNull()
+  })
+
+  it('ignores a resizeHeight-shaped message from a different origin', () => {
+    const { container } = render(
+      <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
+    )
+
+    dispatchGiscusMessage(
+      { giscus: { resizeHeight: 480 } },
+      'https://not-giscus.example',
+    )
+
+    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+  })
+
+  it('ignores an unrelated giscus message (e.g. signOut) — only resizeHeight counts as loaded', () => {
+    const { container } = render(
+      <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
+    )
+
+    dispatchGiscusMessage({ giscus: { signOut: true } })
+
+    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+  })
+
+  describe('load timeout', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('replaces the skeleton with a fallback link to the GitHub discussion if nothing loads within the timeout', () => {
+      const { container } = render(
+        <GiscusComments repo="baroxdev/barox.dev" repoId="R_test123" categoryId="DIC_test456" />,
+      )
+      expect(container.querySelector('.animate-pulse')).not.toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(8000)
+      })
+
+      expect(container.querySelector('.animate-pulse')).toBeNull()
+      expect(container.textContent).toContain("didn’t load")
+      const link = container.querySelector('a')
+      expect(link?.getAttribute('href')).toBe(
+        'https://github.com/baroxdev/barox.dev/discussions',
+      )
+    })
+
+    it('does not show the timeout fallback if giscus loads before the timeout elapses', () => {
+      const { container } = render(
+        <GiscusComments repoId="R_test123" categoryId="DIC_test456" />,
+      )
+
+      dispatchGiscusMessage({ giscus: { resizeHeight: 480 } })
+      act(() => {
+        vi.advanceTimersByTime(8000)
+      })
+
+      expect(container.textContent).not.toContain("didn’t load")
+    })
   })
 })
