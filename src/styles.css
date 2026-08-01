@@ -287,12 +287,17 @@ kbd {
 
 }
 
-.image-full {
+.image-fluid {
   display: block;
   max-width: none;
-  width: 100%;
   margin-left: calc(-1 * (100vw - 100%) / 2);
   margin-right: calc(-1 * (100vw - 100%) / 2);
   width: calc(100% + (100vw - 100%));
   border-radius: 0px!important;
+}
+
+.image-centered {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }

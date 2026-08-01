@@ -35,7 +35,7 @@ describe('remarkResolveContentMarkers', () => {
 
   it('validates every Image marker in a body with multiple markers', () => {
     const body = [
-      '<Image variant="left" src="a.png" />',
+      '<Image src="a.png" />',
       'Some text.',
       '<Image variant="sideways" src="b.png" />',
     ].join('\n\n')

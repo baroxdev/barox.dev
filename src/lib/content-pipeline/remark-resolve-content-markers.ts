@@ -1,13 +1,11 @@
-import { visit } from 'unist-util-visit'
 import type { Root } from 'mdast'
+import { visit } from 'unist-util-visit'
 import { PostValidationError } from './errors.ts'
-import type { ImageVariant } from './types.ts'
+import { ImageVariants } from './types.ts'
 
 const VALID_IMAGE_VARIANTS: ReadonlySet<string> = new Set([
-  'left',
-  'right',
-  'full',
-] satisfies ImageVariant[])
+  ...ImageVariants
+])
 
 interface MdxJsxAttribute {
   type: 'mdxJsxAttribute'
@@ -48,7 +46,7 @@ function validateImageVariant(node: MdxJsxElement): void {
 
   if (!VALID_IMAGE_VARIANTS.has(attribute.value)) {
     throw new PostValidationError(
-      `Invalid Image variant "${attribute.value}" — must be one of left, right, full`,
+      `Invalid Image variant "${attribute.value}" — must be one of ${Array.from(VALID_IMAGE_VARIANTS).join(', ')}`,
     )
   }
 }

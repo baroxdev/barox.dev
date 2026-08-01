@@ -40,11 +40,11 @@ describe('Image', () => {
       <Image
         src="/images/placeholder-wide.svg"
         alt="A wide diagram"
-        variant="full"
+        variant="fluid"
       />,
     )
 
     const img = screen.getByRole('img', { name: 'A wide diagram' })
-    expect(img.className).toMatch(/\bimage-full\b/)
+    expect(img.className).toMatch(/\bimage-fluid\b/)
   })
 })

@@ -1,4 +1,5 @@
-export type ImageVariant = 'left' | 'right' | 'full'
+export const ImageVariants = ['default', 'fluid', 'centered'] as const
+export type ImageVariant = typeof ImageVariants[number]
 
 export interface Post {
   slug: string

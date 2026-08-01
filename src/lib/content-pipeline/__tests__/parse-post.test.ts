@@ -67,7 +67,7 @@ describe('parsePost', () => {
     const body = [
       'Some intro text.<Sidenote>An aside.</Sidenote>',
       '<Image variant="right" src="diagram.png" />',
-      '<Image variant="full" src="wide.png" />',
+      '<Image variant="fluid" src="wide.png" />',
     ].join('\n\n')
 
     await expect(
