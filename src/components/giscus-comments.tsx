@@ -1,9 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '../theme/use-theme.ts'
 import { GISCUS_CONFIG } from '../lib/giscus/giscus-config.ts'
 import type { Theme } from '../theme/theme.ts'
 
 const GISCUS_ORIGIN = 'https://giscus.app'
+
+/** How long to wait for giscus's first resizeHeight message before giving
+ * up on the skeleton and showing a fallback link instead (issue #52). */
+const READY_TIMEOUT_MS = 8000
 
 /**
  * giscus's iframe is a separate origin from ours, so it can't read our
@@ -27,6 +31,53 @@ function giscusThemeUrl(theme: Theme): string {
   return `${window.location.origin}/giscus/${theme}.css`
 }
 
+/** True for giscus's own "iframe has real content and a height" signal —
+ * see lib/types/giscus.ts upstream. Fired on every content resize, but the
+ * first one is a reliable "the widget actually loaded" event, which is all
+ * this component uses it for. */
+function isResizeHeightMessage(
+  data: unknown,
+): data is { giscus: { resizeHeight: number } } {
+  if (typeof data !== 'object' || data === null || !('giscus' in data)) {
+    return false
+  }
+  const giscus: unknown = data.giscus
+  return typeof giscus === 'object' && giscus !== null && 'resizeHeight' in giscus
+}
+
+function CommentsSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6" aria-hidden="true">
+      {[0, 1].map((row) => (
+        <div key={row} className="flex gap-3">
+          <div className="h-8 w-8 shrink-0 rounded-full bg-border" />
+          <div className="flex-1 space-y-2 pt-1">
+            <div className="h-3 w-1/4 rounded bg-border" />
+            <div className="h-3 w-full rounded bg-border" />
+            <div className="h-3 w-2/3 rounded bg-border" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CommentsFallback({ repo }: { repo: string }) {
+  return (
+    <p className="text-sm text-ink-muted">
+      Comments didn&rsquo;t load —{' '}
+      <a
+        href={`https://github.com/${repo}/discussions`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        view discussion on GitHub
+      </a>{' '}
+      instead.
+    </p>
+  )
+}
+
 export interface GiscusCommentsProps {
   repo?: string
   repoId?: string
@@ -46,6 +97,11 @@ export interface GiscusCommentsProps {
  * initial post page render. Mounted once; later theme changes are pushed
  * into the already-loaded iframe via postMessage rather than by re-creating
  * the widget, since giscus's own script only reads the theme at load time.
+ *
+ * While the iframe hasn't mounted yet, a skeleton placeholder fills the gap
+ * (issue #52) instead of blank space — replaced by the real widget on
+ * giscus's first resizeHeight postMessage, or by a fallback link to the
+ * discussion on GitHub if that never arrives within READY_TIMEOUT_MS.
  */
 export function GiscusComments({
   repo = GISCUS_CONFIG.repo,
@@ -56,10 +112,15 @@ export function GiscusComments({
 }: GiscusCommentsProps = {}) {
   const { theme } = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
+  const [loaded, setLoaded] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
 
   useEffect(() => {
     const container = containerRef.current
     if (!container || !repoId || !categoryId) return
+
+    setLoaded(false)
+    setTimedOut(false)
 
     // Read the DOM class directly rather than the `theme` state value: the
     // FOUC-prevention script (see __root.tsx) has already applied the
@@ -98,6 +159,25 @@ export function GiscusComments({
   }, [repo, repoId, category, categoryId, mapping])
 
   useEffect(() => {
+    if (!repoId || !categoryId) return
+
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== GISCUS_ORIGIN) return
+      if (isResizeHeightMessage(event.data)) setLoaded(true)
+    }
+
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [repoId, categoryId])
+
+  useEffect(() => {
+    if (!repoId || !categoryId || loaded) return
+
+    const timer = window.setTimeout(() => setTimedOut(true), READY_TIMEOUT_MS)
+    return () => window.clearTimeout(timer)
+  }, [repoId, categoryId, loaded])
+
+  useEffect(() => {
     const iframe = containerRef.current?.querySelector<HTMLIFrameElement>(
       'iframe.giscus-frame',
     )
@@ -109,5 +189,10 @@ export function GiscusComments({
 
   if (!repoId || !categoryId) return null
 
-  return <div ref={containerRef} className="mt-16 border-t border-border pt-10" />
+  return (
+    <div className="mt-16 border-t border-border pt-10">
+      {!loaded && (timedOut ? <CommentsFallback repo={repo} /> : <CommentsSkeleton />)}
+      <div ref={containerRef} />
+    </div>
+  )
 }
