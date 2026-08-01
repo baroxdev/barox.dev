@@ -20,11 +20,6 @@ and to have somewhere to put lessons learned as I go.
 
 Before any page renders a single post, there needs to be a trustworthy way to
 turn an MDX file into something the rest of the site can rely on.
-
-<Sidenote>
-  That's the whole point of the content pipeline: parse once, validate hard, and
-  let every downstream page trust the shape of a Post.
-</Sidenote>
 Frontmatter gets validated with a schema, so a typo'd date or a missing tag
 fails immediately instead of turning into a broken page three routes later.
 
@@ -60,11 +55,6 @@ column, right in the flow of reading.
 
 A right-variant image like this one is meant to bleed into the same margin
 column the sidenotes use.
-
-<Sidenote>
-  Sidenotes stack instead of overlapping — this one sits right below the first,
-  not on top of it.
-</Sidenote>
 
 <Image
   variant="full"
