@@ -2,6 +2,7 @@ import { compileSync } from '@mdx-js/mdx'
 import { describe, expect, it } from 'vitest'
 import { PostValidationError } from '../errors.ts'
 import { remarkResolveContentMarkers } from '../remark-resolve-content-markers.ts'
+import { ImageVariants } from '../types.ts'
 
 function compileBody(body: string) {
   return compileSync(body, {
@@ -11,7 +12,7 @@ function compileBody(body: string) {
 }
 
 describe('remarkResolveContentMarkers', () => {
-  it.each(['left', 'right', 'full'])(
+  it.each(ImageVariants)(
     'allows a valid Image variant "%s"',
     (variant) => {
       expect(() =>
