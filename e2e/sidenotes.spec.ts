@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test.describe('sidenotes on desktop', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
-  test('render visible in the margin, right of the text column, without overlapping each other', async ({
+  test('render visible inline in the text column, without overlapping each other', async ({
     page,
   }) => {
     await page.goto('/journal/building-barox-dev')
@@ -21,10 +21,9 @@ test.describe('sidenotes on desktop', () => {
       throw new Error('expected all three elements to have a bounding box')
     }
 
-    // Positioned in the margin: to the right of the text column, not
-    // inline within it.
-    expect(firstBox.x).toBeGreaterThan(proseBox.x + proseBox.width - 5)
-    expect(secondBox.x).toBeGreaterThan(proseBox.x + proseBox.width - 5)
+    // Rendered in flow, within the text column — not bled into a margin.
+    expect(firstBox.x).toBeCloseTo(proseBox.x, 0)
+    expect(secondBox.x).toBeCloseTo(proseBox.x, 0)
 
     // Stacked, not collided: the second note starts no higher than the
     // first one ends.
