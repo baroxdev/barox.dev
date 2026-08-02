@@ -15,14 +15,14 @@ describe('Image', () => {
     expect(img.getAttribute('src')).toBe('/images/placeholder-diagram.svg')
   })
 
-  it('defaults to the left variant, with no image-left class', () => {
+  it('defaults to the default variant, with no image-default class', () => {
     render(<Image src="/images/placeholder-diagram.svg" alt="A diagram" />)
 
     const img = screen.getByRole('img', { name: 'A diagram' })
     expect(img.className).not.toMatch(/image-/)
   })
 
-  it('applies an image-full class for the full variant', () => {
+  it('applies an image-fluid class for the fluid variant', () => {
     render(
       <Image
         src="/images/placeholder-wide.svg"

@@ -66,7 +66,7 @@ describe('parsePost', () => {
   it('resolves Sidenote and image-variant markers in the body during compilation', async () => {
     const body = [
       'Some intro text.<Sidenote>An aside.</Sidenote>',
-      '<Image variant="right" src="diagram.png" />',
+      '<Image variant="centered" src="diagram.png" />',
       '<Image variant="fluid" src="wide.png" />',
     ].join('\n\n')
 
