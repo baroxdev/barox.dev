@@ -1,0 +1,78 @@
+---
+slug: the-right-backend-for-the-right-problem
+title: The Right Backend for the Right Problem
+date: 2026-08-02
+tags: [architecture, tanstack-start, supabase, cloudflare]
+published: true
+thumbnail: https://media.barox.dev/thumbnails/68ce1406f6c91896.webp
+keyTakeaways:
+  - 'The instinct to put expensive work on the server is worth arguing against specifically for stateless, compute-heavy tasks like image generation — not as a blanket case against backends.'
+  - 'A recurring manual task, not a client request, was the actual reason to rebuild for self-serve multi-tenancy instead of shipping another one-off campaign site.'
+  - "Postgres Row Level Security enforces per-tenant data isolation at the database layer, so isolation doesn't depend on application code getting every check right."
+  - "Cloudflare's own analytics were the trusted source for traffic and cost claims here, since PostHog and GA4 both undercounted visits significantly during the campaign."
+  - "A week-long campaign with over 67,000 visits stayed entirely inside Cloudflare R2's free tier for storage and request volume."
+---
+
+"Put the expensive part on the server, that's what backends are for." That's the instinct I followed the first time I built this site — and it's the specific instinct I want to argue against here, not backend architecture in general. The second version I built genuinely needed a real backend — Postgres, auth, row-level security — for a problem the first version never had. What stayed constant across both versions is where the actual expensive work happens, and that's the decision worth arguing about.
+
+The product itself is simple: trian.barox.dev, a site where a đoàn viên — a member of Vietnam's Youth Union — picks a frame, writes a short tribute message, and submits it. This round was built for Vĩnh Long's provincial Youth Union (tỉnh đoàn), around the 79th anniversary of War Invalids and Martyrs Day (27/7), Vietnam's yearly day of remembrance for fallen and wounded soldiers. None of that context changes the architecture much. What matters is that I built this twice, three years apart, and the two versions disagree with each other on almost every technical decision except one.
+
+## The first version, and the constraints that actually mattered
+
+Three or four years ago, there were exactly two constraints worth naming: no budget for infrastructure, and end users — Youth Union staff — who weren't technical. I ignored both, at first. I built the way I'd been trained to build: a proper backend, a proper frontend, image generation handled server-side because that's where "real" apps do it.
+
+It didn't survive contact with the actual job. Server-side image generation meant paying for compute for an event that runs a few days a year. Deployment got more complicated than a five-province rollout justified. The backend I built to look professional was working against the constraints in front of me, not for them.
+
+## What client-side bought me
+
+So I dropped it. The tribute image gets generated on the visitor's own device — the server never touches the expensive part. Storage went to Firestore, the one real recurring cost in the whole stack. For a database, I used a Google Sheet, not as a stopgap but as the actual right call: Youth Union staff could open it, filter it, edit it themselves, with zero dashboard for me to build or maintain. I put a REST layer in front of it with sheet.best — full CRUD, JSON, indistinguishable from a real API to the rest of the app — and later swapped that layer for n8n once request volume outgrew sheet.best's limits.
+
+That version shipped to five provincial Youth Unions — Phú Nhuận, Ho Chi Minh City, Bến Tre, Vĩnh Long, Tây Ninh — one deployment per event. Then it sat untouched for a year or two. Nobody asked for more. Neither did I.
+
+## The second version wasn't a client request
+
+Here's an assumption worth heading off: that Vĩnh Long came back asking for a self-serve platform. They didn't. They asked for the same thing as before — build them a new one, this time for the 79th anniversary of 27/7. Self-serve was my call, not theirs.
+
+The reason was a problem I'd been quietly eating for years: every "new one" meant hand-positioning the x/y coordinates of a name, a title, and a message on a template, per campaign, by hand, every single time. It never scaled, and Vĩnh Long's return was just the occasion that made fixing the root cause worth the time.
+
+## Rebuilding for multi-tenant, not for a bigger MVP
+
+Fixing that meant a real rebuild, not a patch — and this time, a real backend was the right call, not the wrong instinct. Frontend moved to TanStack Start, an SSR framework, because the app now needed real routing and server rendering, not a single-page app pretending to be one. The bigger change was the backend: Firestore and the Google Sheet hack couldn't carry what self-serve actually requires. Postgres, via Supabase, took over storage and auth.
+
+Self-serve for one province is a form. Self-serve for province after province, without any of them touching SQL or seeing each other's data, is a different problem — and it's the one actually worth describing here. Every campaign lives in one shared table, tagged with an owner_id tied to a Supabase auth user. Isolation isn't app-code logic a bug could bypass; it's Postgres Row Level Security enforced at the database layer — an owner can see and create only their own rows, regardless of what the frontend does or forgets to check. Campaign slugs are public URLs and have to stay unique platform-wide, so a security-definer function checks availability without exposing any other province's data to do it. Every campaign also carries a status — pending, approved, rejected, suspended — so nothing goes live before someone signs off on it.
+
+Notice what didn't change, though: image generation is still entirely client-side. The backend grew because multi-tenant data isolation demanded it, not because the expensive part moved onto a server. That's the actual argument — not "avoid backends," but "add exactly the backend the new problem requires, and not an inch more."
+
+The rest of the stack is more straightforward:
+
+- Image uploads go through Supabase Edge Functions issuing presigned URLs; the files themselves live in Cloudflare R2.
+- The layout editor — the actual fix for the x/y problem — is a drag-and-drop, Konva-based canvas.
+- The submission flow still generates and downloads the tribute image client-side; a visitor's raw avatar photo gets composited into the frame before upload and is never stored on its own.
+- PostHog and GA4 run side by side for analytics — both wired up by Claude directly, in a branch named for the task, not just advised on.
+- Rollbar handles error monitoring. Cloudflare Turnstile guards the public submission form against bots.
+
+One thing I'm not going to overstate: the architecture is genuinely multi-tenant, but so far exactly one province has used it that way. Nearly all of this campaign's traffic comes from a single owner. This was built for scale I don't have yet, not scale I'm already running — and I'd rather say that plainly than let the multi-tenant design imply an adoption story that hasn't happened.
+
+## The numbers, and which source I actually trust
+
+<Image
+  variant="centered"
+  src="/images/tribute-architecture/cloudflare-web-analytics.jpg"
+  alt="Cloudflare Web Analytics dashboard showing 67,570 visits and 67,790 page views for trian.barox.dev between July 17 and July 29"
+/>
+
+Over July 17–29, trian.barox.dev logged 67,570 visits and 67,790 page views, per Cloudflare's own Web Analytics — essentially the entire traffic of the barox.dev domain for that stretch; my own blog is a rounding error by comparison.
+
+<Image
+  variant="centered"
+  src="/images/tribute-architecture/cloudflare-r2-metrics.jpg"
+  alt="Cloudflare R2 metrics dashboard showing 7.38 GB average storage, 25.47k Class A operations, and 71.95k Class B operations for the framer bucket"
+/>
+
+The R2 bucket holding campaign backgrounds and submissions grew from empty to 13.36 GB over the same window, averaging 7.38 GB, with 25,470 write operations and 71,950 read operations — 96,930 requests total, all of it comfortably inside R2's free tier (1M writes, 10M reads a month). "Free" isn't a marketing line in this case; it's a number that happens to be true.
+
+I also had PostHog and GA4 running, and I'm citing neither as the primary number. GA4 caught roughly 7% of Cloudflare's visit count. PostHog caught about two-thirds. I haven't fully reconciled why — ad blockers and late instrumentation both plausibly play a part — but where sources disagree, Cloudflare is the one I trust and the one I'm citing here.
+
+## What I'd take from this
+
+Not a tool. The constraint decides which part of the architecture needs to be expensive, and which part doesn't. No budget and non-technical users are what killed server-side image generation the first time. A repeated manual task — not a client request — is what justified a real multi-tenant backend the second time. The stack changed almost completely between the two versions. The question I asked before adding anything to it didn't.

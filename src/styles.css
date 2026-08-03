@@ -1,5 +1,45 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 
-@import "tailwindcss";
+/* Design tokens (Primer-shaped: primitive -> semantic -> component), split
+   by category. Class-based dark mode (registered in tokens/colors.css) is
+   toggled via the .dark class on <html>, driven by src/theme/ (see
+   src/theme/theme.ts). The 'dark' class name must stay in sync with the
+   literal 'dark' string in src/theme/theme-init-script.ts and
+   src/theme/use-theme.ts — those run before/outside this stylesheet's
+   scope so they can't share a constant with it. */
+@import './tokens/typography.css';
+@import './tokens/colors.css';
+@import './tokens/spacing.css';
+@import './tokens/components.css';
+
+/* Retarget @tailwindcss/typography's palette at this design system's own
+   tokens instead of its stock gray scale. These variables already flip
+   under .dark via the token redefinitions above, so — like every other
+   component here — prose content never needs a separate dark: variant or
+   prose-invert. */
+.prose {
+  --tw-prose-body: var(--color-ink);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-ink-muted);
+  --tw-prose-links: var(--color-accent);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-ink-muted);
+  --tw-prose-bullets: var(--color-border);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-ink-muted);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+}
 
 * {
   box-sizing: border-box;
@@ -13,5 +53,251 @@ body,
 
 body {
   margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
+/* Base link treatment — reusable, not duplicated per-component. Individual
+   components (e.g. NavBar's active-route styling) can still layer their
+   own utility classes on top. Must be in @layer base: Tailwind v4 utility
+   classes (like NavBar's no-underline) live in @layer utilities, and
+   unlayered CSS always wins over any layered rule regardless of
+   specificity — an unlayered `a` rule here would make no-underline a
+   no-op. */
+@layer base {
+  a {
+    color: var(--color-accent);
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(
+      in oklab,
+      var(--color-accent) 45%,
+      transparent
+    );
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.15s ease;
+  }
+
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+/* One deliberately "imperfect but organized" typographic detail (used
+   sparingly — the nav wordmark only, not site-wide). currentColor + mask
+   means it adapts to the accent color in both themes with a single SVG,
+   no light/dark duplication. */
+@layer components {
+  .link-hand-underline {
+    /* One wave period, sized 1:1 with the mask tile below so repeat-x
+       tiles cleanly instead of squashing/stretching the path. */
+    --underline-squiggle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M1 3 Q4 0.5 7 3 T13 3' stroke='black' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+
+    position: relative;
+    text-decoration: none;
+    padding-bottom: 3px;
+  }
+
+  /* The squiggle lives on a pseudo-element, not the link itself — masking
+     the link directly would clip its text down to the mask shape too. */
+  .link-hand-underline::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    background-color: currentColor;
+    -webkit-mask-image: var(--underline-squiggle);
+    mask-image: var(--underline-squiggle);
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+    -webkit-mask-size: 14px 6px;
+    mask-size: 14px 6px;
+  }
+}
+
+/* View Transitions (#16): PostListEntry's title Link and the post detail
+   page's <h1> share a `post-title-${slug}` view-transition-name (see
+   post-list-entry.tsx / journal_.$slug.tsx), so the browser morphs the
+   title between its list position and its article-heading position instead
+   of cross-fading it like the rest of the page. TanStack Router's `Link
+   viewTransition` prop wraps the navigation in `document.startViewTransition`
+   only when the browser supports it — unsupported browsers just get a
+   normal navigation, no fallback code needed here. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: 220ms;
+  }
+}
+
+/* Users who've asked for less motion get an instant swap instead of any
+   cross-fade/morph animation, not just a shorter one. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Shiki (parsePost, content-pipeline, via shiki-code-figure.ts) is
+   configured with defaultColor: false, so it only declares
+   --shiki-light/--shiki-dark/--shiki-*-bg custom properties per element —
+   never color/background-color directly — so without these rules
+   highlighted code renders with no syntax color at all. */
+[data-code-figure] pre {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-code-figure] pre span {
+  color: var(--shiki-light);
+}
+
+.dark [data-code-figure] pre {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+.dark [data-code-figure] pre span {
+  color: var(--shiki-dark);
+}
+
+/* Frame chrome: bordered figure, optional title bar (only rendered by
+   shiki-code-figure.ts when a fence has title="..."), scrollable code body. */
+[data-code-figure] {
+  margin: 1.5em 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+[data-code-title] {
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-border);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+[data-code-figure] pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 1rem;
+  font-size: 0.9em;
+}
+
+/* Sidenote (#8): counter-based auto-numbering, scoped to one post so
+   numbering restarts per page. */
+.prose-with-sidenotes {
+  counter-reset: sidenote;
+}
+
+.sidenote-marker {
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: super;
+  margin-left: 0.15em;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--color-accent);
+  user-select: none;
+}
+
+.sidenote-marker::before {
+  counter-increment: sidenote;
+  content: counter(sidenote);
+}
+
+/* Checkbox-hack toggle: no JS state, just a hidden checkbox + label + a
+   `:checked` sibling selector. Mobile-only — the lg+ block below makes the
+   content always-visible regardless of checked state. */
+.sidenote-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.sidenote-content {
+  display: none;
+  margin: 0.5rem 0;
+  border-left: 2px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.sidenote-toggle:checked ~ .sidenote-content {
+  display: block;
+}
+
+/* One shared lg+ breakpoint (1024px, matching Tailwind's `lg`) for both the
+   post-page layout widening and the sidenote desktop overrides — kept as a
+   single media block rather than two, so the value only needs to change in
+   one place. */
+@media (min-width: 1024px) {
+  /* The outer container grows to make room for a right margin column
+     (sidenotes, right-variant images), while its direct children keep the
+     original 48rem text-column width and stay pinned to the left edge —
+     leaving all the extra width as reserved space on the right, not split
+     evenly by centering. */
+  .journal-layout {
+    position: relative;
+  }
+
+  .journal-layout > header,
+  .journal-layout > .prose-with-sidenotes {
+    max-width: var(--content-col);
+  }
+
+  /* The marker is a mobile-only affordance (issue #8: "on mobile, sidenotes
+     collapse to a numbered marker"). At lg+ the note is already visible in
+     the margin, so a leftover marker in the text has no purpose — it just
+     shows up as a stray, unclickable number wherever the <Sidenote> tag
+     happens to sit in the source. */
+  .sidenote-marker {
+    display: none;
+  }
+
+  .sidenote-content {
+    display: block;
+    position: relative;
+    margin-top: 0.1rem;
+    margin-bottom: 0.75rem;
+    border-left: none;
+    padding: 0;
+  }
+
+}
+
+.image-fluid {
+  display: block;
+  max-width: none;
+  margin-left: calc(-1 * (100vw - 100%) / 2);
+  margin-right: calc(-1 * (100vw - 100%) / 2);
+  width: calc(100% + (100vw - 100%));
+  border-radius: 0px!important;
+}
+
+.image-centered {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}

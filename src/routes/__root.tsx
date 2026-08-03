@@ -1,10 +1,21 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import type { QueryClient } from '@tanstack/react-query'
 
 import appCss from '../styles.css?url'
+import { NavBar } from '../components/nav-bar.tsx'
+import { themeInitScript } from '../theme/theme-init-script.ts'
 
-export const Route = createRootRoute({
+interface RouterContext {
+  queryClient: QueryClient
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       {
@@ -23,6 +34,12 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: appCss,
       },
+      {
+        rel: 'alternate',
+        type: 'application/rss+xml',
+        title: 'barox.dev',
+        href: '/rss.xml',
+      },
     ],
   }),
   shellComponent: RootDocument,
@@ -32,9 +49,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Must run before any paint to avoid a flash of the wrong theme. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
         <HeadContent />
       </head>
       <body>
+        <NavBar />
         {children}
         <TanStackDevtools
           config={{

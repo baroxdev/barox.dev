@@ -2,6 +2,10 @@
 
 ## Agent skills
 
+### Branching
+
+`main` is kept clean; all ticket work branches from and targets `canary` until the site owner says otherwise. See `docs/agents/branching.md`.
+
 ### Issue tracker
 
 Issues and specs live as GitHub Issues; uses the `gh` CLI. See `docs/agents/issue-tracker.md`.
@@ -13,6 +17,20 @@ Default five canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, 
 ### Domain docs
 
 Single-context layout — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Data fetching
+
+Routes fetch server-derived data via TanStack Query (SSR prefetch + streaming hydration), not bare loaders or `useEffect`. See `docs/agents/tanstack-query.md`.
+
+### File naming and structure
+
+- All file names use kebab-case (`nav-bar.tsx`, not `NavBar.tsx`), except
+  files whose name is mandated by a tool — TanStack Router's file-based
+  routing conventions (`__root.tsx`, etc.) and generated output
+  (`routeTree.gen.ts`). Don't rename those.
+- React components live under `src/components/`. Non-component logic they
+  depend on (hooks, pure functions, scripts) stays in its own domain
+  directory (e.g. `src/theme/`), not bundled into `src/components/`.
 
 <!-- intent-skills:start -->
 

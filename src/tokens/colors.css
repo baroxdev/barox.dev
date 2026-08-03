@@ -1,0 +1,66 @@
+/*
+ * Color tokens, Primer-shaped: primitive scales -> semantic roles.
+ *
+ * The shipped palette only ever had 10 real hex values (5 light + 5 dark),
+ * which don't reduce to one ramp — but they do split cleanly into two real
+ * hue families by RGB channel, not just lightness:
+ *
+ *   `paper` — warm cream <-> warm charcoal (7 of the 10 real values)
+ *   `navy`  — light sky-blue <-> near-black navy (the other 3)
+ *
+ * Every REAL, currently-used value below is the exact literal hex already
+ * shipped — zero visual change. The gap steps needed to fill out a full
+ * 50-900 ramp per family are mechanically interpolated with color-mix(),
+ * not hand-picked design opinions, and currently have no visual consumer.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* --- primitives: paper family (light anchors + interpolated gaps) --- */
+  --color-paper-50: #fbf6ec; /* real: --color-paper (light) */
+  --color-paper-100: #ede7d9; /* real: --color-ink (dark mode) */
+  --color-paper-200: #e2d9c4; /* real: --color-border (light) */
+  --color-paper-300: color-mix(in oklch, var(--color-paper-200) 60%, var(--color-paper-400) 40%);
+  --color-paper-400: #a8a296; /* real: --color-ink-muted (dark mode) */
+  --color-paper-500: color-mix(in oklch, var(--color-paper-400) 50%, var(--color-paper-600) 50%);
+  --color-paper-600: #5b5a52; /* real: --color-ink-muted (light) */
+  --color-paper-700: color-mix(in oklch, var(--color-paper-600) 40%, var(--color-paper-800) 60%);
+  --color-paper-800: #3a362f; /* real: --color-border (dark mode) */
+  --color-paper-900: #201d19; /* real: --color-paper (dark mode) */
+
+  /* --- primitives: navy family (light anchors + interpolated gaps) --- */
+  --color-navy-300: #7fa8d9; /* real: --color-accent (dark mode) */
+  --color-navy-700: #1b3a5c; /* real: --color-accent (light) */
+  --color-navy-900: #1f2430; /* real: --color-ink (light) */
+  --color-navy-50: color-mix(in oklch, var(--color-navy-300) 30%, white 70%);
+  --color-navy-100: color-mix(in oklch, var(--color-navy-300) 50%, white 50%);
+  --color-navy-200: color-mix(in oklch, var(--color-navy-300) 75%, white 25%);
+  --color-navy-400: color-mix(in oklch, var(--color-navy-300) 70%, var(--color-navy-700) 30%);
+  --color-navy-500: color-mix(in oklch, var(--color-navy-300) 45%, var(--color-navy-700) 55%);
+  --color-navy-600: color-mix(in oklch, var(--color-navy-300) 20%, var(--color-navy-700) 80%);
+  --color-navy-800: color-mix(in oklch, var(--color-navy-700) 50%, var(--color-navy-900) 50%);
+}
+
+@theme {
+  /* --- semantic: light default (dark override below flips the same
+     custom properties, so components never need dark: variants — they
+     just use bg-paper/text-ink/etc., unchanged from before this refactor). --- */
+  --color-paper: var(--color-paper-50);
+  --color-ink: var(--color-navy-900);
+  --color-ink-muted: var(--color-paper-600);
+  --color-accent: var(--color-navy-700);
+  --color-border: var(--color-paper-200);
+}
+
+.dark {
+  /* --color-ink genuinely switches hue family by mode here — cool navy-
+     black in light mode for a crisp "ink on paper" feel, warm cream in
+     dark mode matching the rest of the dark palette. That's the existing
+     shipped design intent, not a new decision introduced by this refactor. */
+  --color-paper: var(--color-paper-900);
+  --color-ink: var(--color-paper-100);
+  --color-ink-muted: var(--color-paper-400);
+  --color-accent: var(--color-navy-300);
+  --color-border: var(--color-paper-800);
+}

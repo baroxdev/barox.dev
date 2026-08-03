@@ -1,0 +1,73 @@
+---
+slug: building-barox-dev
+title: Building barox.dev, Kicking Off the Journal
+date: 2026-07-14
+tags: [meta, tanstack-start]
+published: true
+thumbnail: https://media.barox.dev/thumbnails/b497bb0d18ec926c.webp
+keyTakeaways:
+  - "barox.dev is built on TanStack Start as a personal journal to document lessons learned and practice technical writing."
+  - "The site relies on a schema-validated content pipeline that catches frontmatter typos and missing tags early to prevent downstream page errors."
+  - "Images support specific placement variants, allowing content to render inline, centered, or break out to full width."
+  - "Sidenotes render inline in the flow of reading and automatically stack vertically to avoid overlapping."
+---
+
+This is the first entry in the journal, and fittingly it's about the site
+itself. I'm building barox.dev on TanStack Start, mostly to practice writing
+and to have somewhere to put lessons learned as I go.
+
+## Why a content pipeline first
+
+Before any page renders a single post, there needs to be a trustworthy way to
+turn an MDX file into something the rest of the site can rely on.
+
+<Sidenote>
+  That's the whole point of the content pipeline: parse once, validate hard, and
+  let every downstream page trust the shape of a Post.
+</Sidenote>
+Frontmatter gets validated with a schema, so a typo'd date or a missing tag
+fails immediately instead of turning into a broken page three routes later.
+
+Here's the rough shape of a parsed post:
+
+```ts title="types.ts"
+interface Post {
+  slug: string
+  title: string
+  date: Date
+  tags: string[]
+  published: boolean
+  excerpt: string
+}
+```
+
+## Images get a placement, not just a src
+
+<Image
+  src="/images/placeholder-diagram.svg"
+  alt="A placeholder diagram"
+/>
+
+A default-variant image renders at the same width as the text
+<Image
+  variant="centered"
+  src="https://images.unsplash.com/photo-1785427634061-f210652e00bf?q=80&w=1372&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  alt="A placeholder diagram"
+/>
+column, right in the flow of reading.
+
+<Sidenote>
+  Sidenotes stack instead of overlapping — this one sits right below the first,
+  not on top of it.
+</Sidenote>
+
+<Image
+  variant="fluid"
+  src="https://images.unsplash.com/photo-1785423832602-53aa5bfd6cd6?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  alt="A placeholder wide diagram"
+/>
+
+A fluid-variant image breaks out to the entire content width, for anything
+that needs to be legible rather than decorative.
+
+More soon.
