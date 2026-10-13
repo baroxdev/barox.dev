@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { FileText, Github, Linkedin, Mail, Rss } from 'lucide-react'
 import { buildPageHead } from '../lib/seo/page-head.ts'
 import { cv } from '../content/cv.ts'
 
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/about')({
 
 function About() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
+    <main className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-sm font-semibold tracking-widest text-accent uppercase">
         About
       </p>
@@ -24,7 +25,7 @@ function About() {
       <div className="mt-10 flex flex-col gap-10 sm:flex-row">
         <img
           src="/images/avatar.png"
-          alt="Barox"
+          alt={cv.name}
           className="h-56 w-56 shrink-0 rounded-lg object-cover"
         />
 
@@ -52,14 +53,53 @@ function About() {
           </p>
 
           <p>
-            Code's on{' '}
-            <a href={cv.contact.github} target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-            . If you're hiring, the <a href="/cv">CV</a> is the fast path.
-            Otherwise — thanks for reading.
+            If you're hiring, the CV below is the fast path. Otherwise —
+            thanks for reading, and the RSS feed is there if you want to keep
+            up without checking back.
           </p>
         </div>
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3 not-prose">
+        <a
+          href="/cv"
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-paper no-underline transition-opacity hover:opacity-90"
+        >
+          <FileText className="h-4 w-4" aria-hidden="true" />
+          CV
+        </a>
+        <a
+          href={`mailto:${cv.contact.email}`}
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink no-underline transition-colors hover:bg-border"
+        >
+          <Mail className="h-4 w-4" aria-hidden="true" />
+          Email
+        </a>
+        <a
+          href={cv.contact.linkedin}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink no-underline transition-colors hover:bg-border"
+        >
+          <Linkedin className="h-4 w-4" aria-hidden="true" />
+          LinkedIn
+        </a>
+        <a
+          href={cv.contact.github}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink no-underline transition-colors hover:bg-border"
+        >
+          <Github className="h-4 w-4" aria-hidden="true" />
+          GitHub
+        </a>
+        <a
+          href="/rss.xml"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink no-underline transition-colors hover:bg-border"
+        >
+          <Rss className="h-4 w-4" aria-hidden="true" />
+          RSS
+        </a>
       </div>
 
       <section className="mt-16">
@@ -76,6 +116,16 @@ function About() {
               <p className="mt-1 text-sm text-ink-muted">
                 {project.highlights[0]}
               </p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {project.tech.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-full bg-border px-2 py-0.5 text-xs text-ink-muted"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
