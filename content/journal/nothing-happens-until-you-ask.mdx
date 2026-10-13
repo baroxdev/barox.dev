@@ -1,0 +1,177 @@
+---
+slug: nothing-happens-until-you-ask
+title: Nothing Happens Until You Ask
+date: 2026-10-08
+tags: [react, react-aria, architecture]
+published: false
+thumbnail: https://media.barox.dev/thumbnails/e952bcfe8456b95a.webp
+---
+
+I was reading through `react-aria-components`'s source again, the `<CheckboxGroup>` component specifically, and ran into something I couldn't explain yet: a component I hadn't wired up at all just... works. Write `<Text slot="description">Must be 8+ characters</Text>` somewhere inside a `<CheckboxGroup>` — no `id`, no `aria-describedby`, nothing — and it's correctly linked up. Somewhere, something decided that. Where?
+
+## Isn't this just `useContext`?
+
+Most of the Context I've written looks like this: one `createContext`, one value, read it back wherever it's needed.
+
+```jsx
+const ThemeContext = createContext('light');
+
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+
+function ThemeButton() {
+  let theme = useContext(ThemeContext);
+  return <button className={theme}>Save</button>;
+}
+```
+
+That's the textbook use case — avoid prop drilling, share one piece of state with everything underneath it. `useContext` hands you the value, raw, and whatever you do with it is on you. It's basic state management: one shape in, same shape out.
+
+`TextContext` isn't that, even though it's built from the exact same `createContext`/`Provider`/`useContext` primitives. Three things are different:
+
+- It's not one value — it's a **map of named buckets** (`slots: {description, errorMessage}`), so two different `<Text>` elements in the same subtree can read two different prop objects off the *same* context, picked by matching `props.slot` against a key.
+- It doesn't hand you the raw value — it **merges** it onto props you already had (`mergeProps(contextProps, props)`), with your local props winning. Plain `useContext` never merges anything for you; you get the value and decide.
+- The thing coming out isn't the component's actual state — it's **props going into a render** (`<ElementType {...domProps}>`), a second delivery channel alongside the props you pass directly, not the end value itself.
+
+Keep that gap in mind, because the first guess at how it works is informed by the simpler pattern, and it's wrong for exactly the reasons above.
+
+Here's the `<CheckboxGroup>` in question, from [Checkbox.tsx:320-336](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Checkbox.tsx#L320-L336):
+
+```jsx
+<Provider
+  values={[
+    [CheckboxGroupStateContext, state],
+    [LabelContext, {...labelProps, ref: labelRef, elementType: 'span'}],
+    [TextContext, {
+      slots: {
+        description: descriptionProps,
+        errorMessage: errorMessageProps
+      }
+    }],
+    [FieldErrorContext, validation]
+  ]}>
+  {renderProps.children}
+</Provider>
+```
+
+My first guess reading this was that `Provider` must be doing something clever with that `slots` object — matching it up against whatever's inside `children`, maybe walking the tree. It isn't. [utils.tsx:151-161](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/utils.tsx#L151-L161) is the entire implementation:
+
+```jsx
+export function Provider({values, children}) {
+  for (let [Context, value] of values) {
+    children = <Context.Provider value={value}>{children}</Context.Provider>;
+  }
+  return children;
+}
+```
+
+That's a loop over plain `React.createContext().Provider` wrappers. Sugar, so `CheckboxGroup` doesn't have to hand-nest four of them. It never reads `children`, never renders an element of its own, never touches a single prop. Delete every `<Text>` from inside that tree and this function wouldn't notice — it'd just keep injecting a value nobody reads.
+
+So the wiring isn't at the provider. It's entirely on the other end.
+
+## The actual wiring is one line, in `<Text>`
+
+[Text.tsx:22-32](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Text.tsx#L22-L32) is nearly the whole component:
+
+```jsx
+export const Text = /*#__PURE__*/ createHideableComponent(function Text(props, ref) {
+  [props, ref] = useContextProps(props, ref, TextContext);
+  let {elementType = 'span', ...domProps} = props;
+  let ElementType = dom[elementType];
+  return <ElementType className="react-aria-Text" {...domProps} ref={ref} />;
+});
+```
+
+That one call is doing the real work. Everything before it in this piece — the provider wrapping, the slots object, the context itself sitting in the tree — is inert. Data, produced and handed down, waiting. This is the only place any of it turns into props a DOM element actually receives.
+
+[utils.tsx:306-362](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/utils.tsx#L306-L362) is two hooks, not one:
+
+```jsx
+export function useSlottedContext(context, slot) {
+  let ctx = useContext(context);
+  if (slot === null) return null; // explicit opt-out
+  if (ctx && 'slots' in ctx && ctx.slots) {
+    let slotKey = slot || DEFAULT_SLOT;
+    if (!ctx.slots[slotKey]) {
+      let availableSlots = new Intl.ListFormat().format(Object.keys(ctx.slots).map(p => `"${p}"`));
+      throw new Error(`${slot ? `Invalid slot "${slot}".` : 'A slot prop is required.'} Valid slot names are ${availableSlots}.`);
+    }
+    return ctx.slots[slotKey];
+  }
+  return ctx;
+}
+
+export function useContextProps(props, ref, context) {
+  let ctx = useSlottedContext(context, props.slot) || {};
+  let {ref: contextRef, ...contextProps} = ctx;
+  let mergedRef = useObjectRef(useMemo(() => mergeRefs(ref, contextRef), [ref, contextRef]));
+  let mergedProps = mergeProps(contextProps, props);
+  // (+ special-case merging for `style`, since mergeProps skips it)
+  return [mergedProps, mergedRef];
+}
+```
+
+The first hook reads whatever the provider stuffed into context, then looks up the bucket that matches the slot you passed. The second one merges that onto your own props — context first, your props second — so anything you wrote directly on the element always wins over whatever context handed down.
+
+### What happens if you forget the `slot` prop?
+
+Inside this exact `CheckboxGroup`, it throws. The lookup falls back to a [shared default bucket](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/utils.tsx#L37) when you don't pass a slot — but `CheckboxGroup` never registered one, so the fallback comes up empty, and you get a real, listed error: `"A slot prop is required. Valid slot names are "description", "errorMessage"."` No silent fallback, no quiet mis-wire. Forgetting the slot is a crash, not a bug you find three renders later.
+
+That felt like a rule of the hook until I went looking for a second example and found it isn't one.
+
+## It's not a `CheckboxGroup` one-off
+
+20 components in `react-aria-components` provide `TextContext` this same way. Four of them are enough to see it's one mechanism doing different jobs, not one shape copy-pasted twenty times.
+
+**The common case** shows up almost verbatim in [TextField.tsx:175-179](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/TextField.tsx#L175-L179), [Switch.tsx:351-355](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Switch.tsx#L351-L355), [NumberField.tsx:175-179](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/NumberField.tsx#L175-L179), and [TagGroup.tsx:210-214](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/TagGroup.tsx#L210-L214) — same `{description, errorMessage}` shape as `CheckboxGroup`. Makes sense: they're all form fields, all backed by `useField` underneath.
+
+But [Dialog.tsx:189-197](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Dialog.tsx#L189-L197) does something `CheckboxGroup` doesn't:
+
+```jsx
+[TextContext, {
+  slots: {
+    [DEFAULT_SLOT]: {},
+    description: contentProps
+  }
+}]
+```
+
+`Dialog` registers that default bucket too — just as an empty object. A `<Text>` with no slot inside a `Dialog` doesn't throw at all; it renders plain, because the lookup finds something sitting in that bucket instead of nothing. Add `slot="description"` and it still gets the real props, wired to the dialog's own `aria-describedby`. So the crash-on-forgetting behavior wasn't a rule the hook enforces — it's a choice each component makes, by registering a default bucket or leaving it out.
+
+[Select.tsx:421](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Select.tsx#L421) goes further and uses the same context to do the opposite of handing props down:
+
+```jsx
+{/* clear description and error message slots */}
+<TextContext.Provider value={undefined}>{renderProps.children}</TextContext.Provider>
+```
+
+No slots map at all here — it just resets the context straight back to `undefined`, inside the bit that renders the trigger's current selection. The comment in the source says why: the field's own description and error-message slots were registered higher up the tree, and without this reset, anything rendered inside the selected item would quietly inherit the field's description instead of having none of its own. Same context, used as a fence instead of a pipe.
+
+And `RadioGroup` registers this context twice, at two different nesting levels, with two different shapes. The group itself, at [line 323-327](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/RadioGroup.tsx#L323-L327), gets both a description and an error message — a group can be invalid as a whole. Each individual radio inside it, at [line 445-450](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/RadioGroup.tsx#L445-L450), only gets a description — no error message, because a single radio doesn't carry its own validation state, only the group does. The slots map was never a schema the context defines once. It's just whatever shape that particular hook call happened to return, redeclared fresh at whichever level owns it.
+
+## Where `descriptionProps` comes from in the first place
+
+One more hop down, to confirm this bottoms out where [React Aria Refuses to Render Anything](/journal/react-aria-refuses-to-render-anything) already found `buttonProps` bottoming out. [useCheckboxGroup.ts:63](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria/src/checkbox/useCheckboxGroup.ts#L63):
+
+```js
+let {labelProps, fieldProps, descriptionProps, errorMessageProps} = useField({...});
+```
+
+`descriptionProps` is just `{id: <generated id>}`, produced by `react-aria`'s `useField` hook — the same "behavior layer returns a prop object, no DOM opinion" contract as `useButton`. `react-aria-components` doesn't invent the `id`-linking logic here either. It takes the object `react-aria` already computed and threads it through context instead of handing it to you as a direct prop.
+
+Here's the whole chain end to end:
+
+<Image
+  src="https://media.barox.dev/content/72d01e49a07fc019.webp"
+  alt="Six-step chain from useField in react-aria producing descriptionProps and errorMessageProps, through useCheckboxGroup, through CheckboxGroup's inert Provider, through TextContext sitting inert in the tree, to Text's useContextProps call (highlighted as the one transformation point), to the final rendered span"
+  variant="centered"
+/>
+
+The diagram's point is the gap between step 4 and step 5. Everything up to `TextContext` is just data sitting in the tree, inert, regardless of how many providers it passed through to get there. The transformation — context becoming an actual prop on an actual element — happens exactly once, at whichever `useContextProps` call bothers to ask for it. No consumer, no wiring, no matter how many `Provider`s wrap the tree above it.
+
+Next time something "just works" off a context value with no props passed explicitly, go find the `useContext` call actually reading it — that's where the behavior lives, not wherever the value got set.

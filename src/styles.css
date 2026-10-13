@@ -94,6 +94,28 @@ kbd {
   font-family: var(--font-mono);
 }
 
+/* Inline code (identifiers mentioned mid-sentence, e.g. `useContext`) —
+   distinct from Shiki's highlighted blocks below. Tailwind Typography's
+   default inline-code treatment is just backtick quote marks + the body
+   text color, which barely reads as code at a glance inside a dense
+   paragraph. A muted pill (reusing --color-border, the same token the
+   code-block title bar already uses as a surface) makes individual
+   identifiers scannable without competing with the real code blocks for
+   attention. `:not(pre code)` scopes this to inline usage only — block
+   code keeps Shiki's own background/colors untouched. */
+.prose code:not(pre code) {
+  background-color: var(--color-border);
+  border-radius: 0.3em;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+  font-weight: 500;
+}
+
+.prose code:not(pre code)::before,
+.prose code:not(pre code)::after {
+  content: none;
+}
+
 /* One deliberately "imperfect but organized" typographic detail (used
    sparingly — the nav wordmark only, not site-wide). currentColor + mask
    means it adapts to the accent color in both themes with a single SVG,
