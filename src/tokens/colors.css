@@ -23,6 +23,14 @@
  * neutral near-black, not blue-tinted, so ink now reads as warm charcoal
  * (paper family) in both modes instead of switching hue family by theme.
  *
+ * Second pass: the paper-50 background and paper-200 border were still
+ * doing a strong "cream stationery" saturation (closer to aged paper than
+ * Apple's own near-white #fbfbfd / hairline #d2d2d7 separators) even after
+ * the ink/accent swap above — color consistency across the WHOLE page is
+ * as much a part of the "Apple" read as any single token, so both are
+ * desaturated here, keeping the warm hue but dialing back how loud it is.
+ * paper-600/-400 (muted text) got the same light nudge toward neutral.
+ *
  * Every REAL, currently-used value below is a literal hex, documented next
  * to its semantic consumer. Gap steps are mechanically interpolated with
  * color-mix(), not hand-picked, and currently have no visual consumer.
@@ -32,16 +40,16 @@
 
 :root {
   /* --- primitives: paper family (light anchors + interpolated gaps) --- */
-  --color-paper-50: #fbf6ec; /* real: --color-paper (light) */
+  --color-paper-50: #f8f6f1; /* real: --color-paper (light) */
   --color-paper-100: #f0ebe0; /* real: --color-ink (dark mode) */
-  --color-paper-200: #e2d9c4; /* real: --color-border (light) */
+  --color-paper-200: #e3e0d8; /* real: --color-border (light) */
   --color-paper-300: color-mix(in oklch, var(--color-paper-200) 60%, var(--color-paper-400) 40%);
-  --color-paper-400: #a8a296; /* real: --color-ink-muted (dark mode) */
+  --color-paper-400: #a19c92; /* real: --color-ink-muted (dark mode) */
   --color-paper-500: color-mix(in oklch, var(--color-paper-400) 50%, var(--color-paper-600) 50%);
-  --color-paper-600: #5b5a52; /* real: --color-ink-muted (light) */
+  --color-paper-600: #68665f; /* real: --color-ink-muted (light) */
   --color-paper-700: color-mix(in oklch, var(--color-paper-600) 40%, var(--color-paper-800) 60%);
-  --color-paper-800: #3a362f; /* real: --color-border (dark mode) */
-  --color-paper-900: #1c1a17; /* real: --color-paper (dark mode) */
+  --color-paper-800: #36332e; /* real: --color-border (dark mode) */
+  --color-paper-900: #1c1b19; /* real: --color-paper (dark mode) */
   --color-paper-950: #19160f; /* real: --color-ink (light mode) — new anchor, see header comment */
 
   /* --- primitives: navy family (now an Apple-blue ramp; light anchor +

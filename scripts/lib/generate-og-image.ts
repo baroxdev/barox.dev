@@ -18,9 +18,9 @@ const CARD_HEIGHT = 630
  * the new colors; existing ones are frozen, same as manual thumbnails.
  */
 const COLORS = {
-  paper: '#fbf6ec',
+  paper: '#f8f6f1',
   ink: '#19160f',
-  inkMuted: '#5b5a52',
+  inkMuted: '#68665f',
   accent: '#0066cc',
 }
 
