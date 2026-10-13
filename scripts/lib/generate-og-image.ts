@@ -19,9 +19,9 @@ const CARD_HEIGHT = 630
  */
 const COLORS = {
   paper: '#fbf6ec',
-  ink: '#1f2430',
+  ink: '#19160f',
   inkMuted: '#5b5a52',
-  accent: '#1b3a5c',
+  accent: '#0066cc',
 }
 
 const FONT_DIR = path.join(
