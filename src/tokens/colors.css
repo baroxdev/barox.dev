@@ -42,6 +42,17 @@
  * matching those Apple constants rather than carrying paper's warm hue
  * into the dark end of the same ramp.
  *
+ * Fourth pass: still read "brown," specifically called out as needing to
+ * look "more like paper." The actual culprit wasn't the background at
+ * all — --color-border (paper-200) doubles as a SOLID FILL in two spots
+ * (inline-code pills in styles.css, and code-block title bars), not just
+ * a hairline. A tan/khaki-ish gray that's barely noticeable as a 1px line
+ * reads as a strong brown wash once it's filling a pill shape repeated
+ * dozens of times down a code-heavy post. Lightened it substantially,
+ * much closer to paper-50 itself, so it reads as a paper shade in both
+ * jobs instead of a khaki stripe. paper-950 (ink) also nudged slightly
+ * more neutral for the same reason, on general principle.
+ *
  * Every REAL, currently-used value below is a literal hex, documented next
  * to its semantic consumer. Gap steps are mechanically interpolated with
  * color-mix(), not hand-picked, and currently have no visual consumer.
@@ -53,7 +64,7 @@
   /* --- primitives: paper family (light anchors + interpolated gaps) --- */
   --color-paper-50: #f8f6f1; /* real: --color-paper (light) */
   --color-paper-100: #f2f2f2; /* real: --color-ink (dark mode) — neutral, see "third pass" above */
-  --color-paper-200: #e3e0d8; /* real: --color-border (light) */
+  --color-paper-200: #efebe2; /* real: --color-border (light) — kept close to paper-50; see "fourth pass" */
   --color-paper-300: color-mix(in oklch, var(--color-paper-200) 60%, var(--color-paper-400) 40%);
   --color-paper-400: #98989d; /* real: --color-ink-muted (dark mode) — Apple secondaryLabel dark */
   --color-paper-500: color-mix(in oklch, var(--color-paper-400) 50%, var(--color-paper-600) 50%);
@@ -61,7 +72,7 @@
   --color-paper-700: color-mix(in oklch, var(--color-paper-600) 40%, var(--color-paper-800) 60%);
   --color-paper-800: #38383a; /* real: --color-border (dark mode) — Apple separator-equivalent */
   --color-paper-900: #1c1c1e; /* real: --color-paper (dark mode) — Apple secondarySystemBackground */
-  --color-paper-950: #19160f; /* real: --color-ink (light mode) — new anchor, see header comment */
+  --color-paper-950: #1a1815; /* real: --color-ink (light mode) — new anchor, see header comment */
 
   /* --- primitives: navy family (now an Apple-blue ramp; light anchor +
      interpolated gaps) --- */
