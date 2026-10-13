@@ -6,9 +6,10 @@
  * or `git show canary:src/tokens/colors.css` to pull its exact values back
  * wholesale if this one doesn't stick):
  *
- *   `paper` — warm cream <-> warm near-black charcoal. Kept from the
- *             original palette almost untouched — paper is the "a little
- *             retro" half of the brief, and it was already doing that job.
+ *   `paper` — warm cream (light) <-> neutral near-black (dark). Only the
+ *             light end carries the "a little retro" warmth from the
+ *             brief now — see "third pass" below for why the dark end
+ *             doesn't match it anymore.
  *   `navy`  — now a true Apple system-blue ramp (light: #0066cc, the
  *             classic apple.com link blue; dark: #2997ff, Apple's own
  *             dark-mode accent) instead of the old desaturated navy. This
@@ -31,6 +32,16 @@
  * desaturated here, keeping the warm hue but dialing back how loud it is.
  * paper-600/-400 (muted text) got the same light nudge toward neutral.
  *
+ * Third pass: dark mode specifically was called out as reading "brown,"
+ * not "black or gray-black" — correct. iOS/macOS dark mode (verified
+ * against Apple's own long-published system colors, e.g.
+ * secondarySystemBackground #1C1C1E, secondaryLabel #98989D, separator
+ * ~#38383A) is neutral-to-cool near-black, zero brown in it. The "retro
+ * paper" warmth from the brief stays on the LIGHT side only now — dark
+ * mode's paper-900/800/400/100 anchors below are genuinely neutral,
+ * matching those Apple constants rather than carrying paper's warm hue
+ * into the dark end of the same ramp.
+ *
  * Every REAL, currently-used value below is a literal hex, documented next
  * to its semantic consumer. Gap steps are mechanically interpolated with
  * color-mix(), not hand-picked, and currently have no visual consumer.
@@ -41,15 +52,15 @@
 :root {
   /* --- primitives: paper family (light anchors + interpolated gaps) --- */
   --color-paper-50: #f8f6f1; /* real: --color-paper (light) */
-  --color-paper-100: #f0ebe0; /* real: --color-ink (dark mode) */
+  --color-paper-100: #f2f2f2; /* real: --color-ink (dark mode) — neutral, see "third pass" above */
   --color-paper-200: #e3e0d8; /* real: --color-border (light) */
   --color-paper-300: color-mix(in oklch, var(--color-paper-200) 60%, var(--color-paper-400) 40%);
-  --color-paper-400: #a19c92; /* real: --color-ink-muted (dark mode) */
+  --color-paper-400: #98989d; /* real: --color-ink-muted (dark mode) — Apple secondaryLabel dark */
   --color-paper-500: color-mix(in oklch, var(--color-paper-400) 50%, var(--color-paper-600) 50%);
   --color-paper-600: #68665f; /* real: --color-ink-muted (light) */
   --color-paper-700: color-mix(in oklch, var(--color-paper-600) 40%, var(--color-paper-800) 60%);
-  --color-paper-800: #36332e; /* real: --color-border (dark mode) */
-  --color-paper-900: #1c1b19; /* real: --color-paper (dark mode) */
+  --color-paper-800: #38383a; /* real: --color-border (dark mode) — Apple separator-equivalent */
+  --color-paper-900: #1c1c1e; /* real: --color-paper (dark mode) — Apple secondarySystemBackground */
   --color-paper-950: #19160f; /* real: --color-ink (light mode) — new anchor, see header comment */
 
   /* --- primitives: navy family (now an Apple-blue ramp; light anchor +
@@ -78,9 +89,10 @@
 }
 
 .dark {
-  /* Ink stays in the paper family in both modes now (warm charcoal <->
-     warm cream) — see header comment for why this no longer switches hue
-     family between light/dark the way the previous palette did. */
+  /* Ink stays in the paper family in both modes (no more hue-family
+     switch between light/dark like the old palette did) — but the family
+     itself is no longer one warm hue end to end. Light is warm charcoal,
+     dark is neutral near-black/white, per the "third pass" header note. */
   --color-paper: var(--color-paper-900);
   --color-ink: var(--color-paper-100);
   --color-ink-muted: var(--color-paper-400);
