@@ -1,0 +1,94 @@
+---
+slug: let-two-authors-share-one-function
+title: Let Two Authors Share One Function
+date: 2026-10-09
+tags: [react, react-aria, architecture]
+published: true
+thumbnail: https://media.barox.dev/thumbnails/4b2f7564ea4c91e4.webp
+---
+
+I went looking for `composeRenderProps` expecting it everywhere — it's exported right alongside `useContextProps` and `mergeProps`, the same utility file I'd just spent a week inside. Grepping for where it's actually *called* inside `react-aria-components` turned up exactly one file: [ColorSwatchPicker.tsx:163-165](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ColorSwatchPicker.tsx#L163-L165). One call site, in the whole package.
+
+Grepping the same pattern in `@react-spectrum/s2` — Adobe's actual styled component library, built on top of `react-aria-components` — turned up eight: `TextField`, `Dialog`, `Popover`, `Card`, `TagGroup`, `Field`, `CustomDialog`, `FullscreenDialog`. A tool that barely gets used by the layer it ships in, used constantly by the layer built on top of it. Worth asking why.
+
+## Isn't this just `mergeProps`?
+
+Close, but no — and the difference is the whole point. [useContextProps](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/utils.tsx#L329-L362) from the last piece in this series uses `mergeProps` to combine two plain objects — context props and local props, context first, local wins. That works because both sides are the same shape: a prop object.
+
+`children` in `react-aria-components` usually isn't a plain value. It's typed as "a static node, *or* a function that receives render state and returns a node" — `isDisabled`, `isInvalid`, `isSelected`, whatever that component tracks. You can't merge a plain `<span>` with a function the way you merge two objects. [utils.tsx:288-294](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/utils.tsx#L288-L294) is the entire implementation:
+
+```jsx
+export function composeRenderProps(value, wrap) {
+  return renderProps => wrap(
+    typeof value === 'function' ? value(renderProps) : value,
+    renderProps
+  );
+}
+```
+
+Six lines. It doesn't merge two values — it returns a brand-new function. Call that function with the real render state later, and it first resolves whatever the caller originally passed (running it if it was a function, using it as-is if it wasn't), then hands *that* plus the same render state to `wrap`. Two different render-prop functions, written by two different people who've never seen each other's code, collapsed into one function that runs both.
+
+## The one place `react-aria-components` uses its own tool
+
+Here's that lone call site, from [ColorSwatchPicker.tsx:163-165](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ColorSwatchPicker.tsx#L163-L165):
+
+```jsx
+{composeRenderProps(wrap(props.children), children => (
+  <ColorSwatchContext.Provider value={{color}}>{children}</ColorSwatchContext.Provider>
+))}
+```
+
+Whatever the consumer passed as `children` — static markup, or a function reading `isSelected` off the swatch item — gets wrapped in a `ColorSwatchContext.Provider` without `ColorSwatchPickerItem` needing to know or care which one it got. I think that's the whole job, reduced to its smallest case: inject something around content you didn't write, regardless of what shape that content takes.
+
+## Where it actually earns its keep
+
+Three real examples, not all eight — enough to see it's doing different jobs each time, not one shape copy-pasted.
+
+**Threading render state into injected markup** — [TextField.tsx:195-205](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/@react-spectrum/s2/src/TextField.tsx#L195-L205):
+
+```jsx
+{composeRenderProps(props.children, (children, {isDisabled, isInvalid}) => (
+  <>
+    <FieldLabel isDisabled={isDisabled} isInvalid={isInvalid} .../>
+    {children}
+  </>
+))}
+```
+
+S2's `TextField` wants to render its own `<FieldLabel>` *and* whatever the consumer passed — and the label needs `isDisabled`/`isInvalid`, the exact same render state the consumer's own function would've received straight from `react-aria-components`. `composeRenderProps` is what makes that state available to both authors at once, instead of S2 having to re-derive it from somewhere else.
+
+**Resetting context, then re-providing it** — [Dialog.tsx:126-141](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/@react-spectrum/s2/src/Dialog.tsx#L126-L141):
+
+```jsx
+{composeRenderProps(props.children, children => (
+  <OverlayTriggerStateContext.Provider value={null}>
+    <Provider values={[
+      [ImageContext, {styles: image}],
+      [HeadingContext, {isHidden: true}],
+      // ...
+    ]}>
+      {children}
+```
+
+This is the exact `Provider`/context-fence combination from [Nothing Happens Until You Ask](/journal/nothing-happens-until-you-ask), just one layer further out. `composeRenderProps` isn't replacing that mechanism — it's the thing that lets S2 get *inside* the consumer's render function far enough to set it up in the first place.
+
+**Using render state to style a sibling, not the content itself** — [Popover.tsx:261-271](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/@react-spectrum/s2/src/Popover.tsx#L261-L271):
+
+```jsx
+{composeRenderProps(props.children, (children, renderProps) => (
+  <>
+    {!hideArrow && (
+      <OverlayArrow>
+        <svg className={arrow(renderProps)}>...</svg>
+      </OverlayArrow>
+    )}
+    {children}
+  </>
+))}
+```
+
+Here the injected element isn't wrapping the consumer's content at all — it's a decorative arrow that sits *next to* `children`, styled using the same `renderProps` the consumer's function would've seen. The render state isn't just passed through; it's consumed twice, by two different pieces of markup, from one function call.
+
+## Why react-aria-components barely needs its own helper
+
+The headless layer's whole job, from [React Aria Refuses to Render Anything](/journal/react-aria-refuses-to-render-anything), is handing back behavior and state without opinions about markup. Most of its components render exactly one thing — there's rarely a second piece of injected JSX competing for the same render state, so there's rarely anything to compose. `@react-spectrum/s2` is the layer that actually has opinions about markup — a label next to an input, an arrow next to a popover, a dismiss button inside a dialog — and every one of those opinions needs the same render state the consumer's own function gets. I don't think `composeRenderProps` is a general-purpose tool that happens to be underused one layer down. It's a tool for exactly the problem the styled layer has and the headless layer mostly doesn't: two authors, one function, both needing the same state.
