@@ -1,0 +1,45 @@
+---
+slug: the-document-that-isnt-one
+title: The Document That Isn't One
+date: 2026-10-11
+tags: [react, react-aria, architecture]
+published: true
+thumbnail: https://media.barox.dev/thumbnails/255c2a38e4132f3d.webp
+---
+
+The question's been sitting in the vault for a while: `react-aria` is the package that hands back behavior with zero DOM opinions — so why does it ship a `CollectionBuilder` whose source file imports a class called `Document`, with methods called `createElement`, `appendChild`, `insertBefore`, `removeChild`? Those are literal DOM API names. I assumed it was just borrowed vocabulary — "parent," "child," "document" are common words, nothing stops a plain data structure from using them too. [Document.ts:36-465](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria/src/collections/Document.ts#L36-L465) says otherwise.
+
+## Not vocabulary — a literal duck-type
+
+Here's the class declaration, [Document.ts:428-454](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria/src/collections/Document.ts#L428-L454):
+
+```ts
+export class Document<T, C extends BaseCollection<T>> extends BaseNode<T> {
+  nodeType = 11; // DOCUMENT_FRAGMENT_NODE
+  ownerDocument: Document<T, C> = this;
+  // ...
+  createElement(type: string): ElementNode<T> {
+    return new ElementNode(type, this);
+  }
+}
+```
+
+`nodeType = 11` isn't a comment or a style choice — `11` is the real DOM's `Node.DOCUMENT_FRAGMENT_NODE` constant, hardcoded onto a class that has never touched a browser. And [BaseNode](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria/src/collections/Document.ts#L36-L262) — which `Document` extends — implements `appendChild`, `insertBefore`, and `removeChild` too. That's not a coincidence of naming. It's the exact, minimal interface something else is checking for.
+
+## Who's checking?
+
+[CollectionBuilder.tsx:319](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria/src/collections/CollectionBuilder.tsx#L319):
+
+```ts
+createPortal(wrappedChildren, doc as unknown as Element)
+```
+
+`doc` is an instance of that same fake `Document`. `createPortal` is React's own API, the one you'd normally point at a real DOM node to render a modal outside its parent's markup. React's reconciler doesn't actually require a real DOM node there — it requires something shaped enough like one, and it checks that shape by reading properties like `nodeType` and calling methods like `appendChild`. Hand it an object that returns `11` for `nodeType` and has a working `appendChild`, and React has no way to tell the difference. It reconciles into the fake `Document` exactly as it would into a real page — diffing, keys, mount order, add/remove — and every "DOM node" it creates along the way is actually a plain `ElementNode` instance, never anything that touches the screen.
+
+## Why go to that much trouble
+
+Because the alternative is writing and maintaining a custom React renderer. `<ListBox><Section><Item/></Section></ListBox>` is ordinary nested JSX — dynamic children, conditional items, whatever the consumer wants — and React already knows how to reconcile arbitrarily complex trees like that correctly. Rebuilding that logic by hand just to track an abstract list would mean re-solving a problem React has already solved, and keeping that solution in sync with React's own behavior forever. Feeding React a container that merely *looks* like DOM gets the real reconciler to do the work for free. Once it's done, `react-aria-components` walks the resulting `ElementNode` tree into an immutable `Collection`, and that's the plain data object the headless state hooks — `useListState` and the rest — actually consume.
+
+I think this is the sharpest version yet of the idea from [React Aria Refuses to Render Anything](/journal/react-aria-refuses-to-render-anything). That piece was about hooks handing back prop objects instead of opinions on markup. This is one layer stranger: the behavior layer doesn't just avoid touching the DOM, it borrows the DOM-*shaped* machinery React already ships — the reconciler that exists specifically to manage real pages — and quietly points it at something that was never a page at all.
+
+Next time a type signature or a class name in a library looks suspiciously like a browser API nowhere near the DOM, go check what's actually reading it — there's a real chance it's not an analogy.
