@@ -1,0 +1,88 @@
+---
+slug: jsx-doesnt-have-an-if-statement
+title: JSX Doesn't Have an If Statement
+date: 2026-10-10
+tags: [react, react-aria, architecture]
+published: true
+thumbnail: https://media.barox.dev/thumbnails/73963fa8981e655a.webp
+---
+
+This is the exact snippet that's been sitting in my research notes for weeks, from [ListBox.tsx:384-394](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ListBox.tsx#L384-L394):
+
+```jsx
+let emptyState: JSX.Element | null = null;
+if (isEmpty && props.renderEmptyState) {
+  emptyState = (
+    <div role="option" style={{display: 'contents'}}>
+      {props.renderEmptyState(renderValues)}
+    </div>
+  );
+}
+// ...
+return (
+  <FocusScope>
+    <dom.div {...mergeProps(/* ... */)}>
+      {/* ... */}
+      {emptyState}
+    </dom.div>
+  </FocusScope>
+);
+```
+
+Declare a variable, maybe reassign it inside an `if`, use it once at the bottom in a single `return`. I'd assumed this was defensive — early-return before every hook has run is illegal, so you build the conditional piece into a variable instead and let the one `return` happen last, guaranteeing every hook above it ran unconditionally. Reasonable theory. I went looking for a case where it'd actually matter and found the opposite.
+
+## Does `react-aria-components` actually follow that rule?
+
+Not always, it turns out. A few hundred lines up in the same file, [ListBox.tsx:322-330](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ListBox.tsx#L322-L330):
+
+```jsx
+if (isListDraggable && dragAndDropHooks) {
+  // oxlint-disable-next-line react/react-compiler
+  dragState = dragAndDropHooks.useDraggableCollectionState!({
+    collection,
+    selectionManager,
+    preview: dragAndDropHooks.renderDragPreview ? preview : undefined
+  });
+  // oxlint-disable-next-line react/react-compiler
+  dragAndDropHooks.useDraggableCollection!({}, dragState, listBoxRef);
+  // ...
+}
+```
+
+Two hook calls, sitting inside an `if`, with a lint rule explicitly silenced right above each one. That's not a variable being conditionally *assigned* — that's a hook being conditionally *called*, the exact thing I'd assumed the whole `let`-then-single-`return` convention existed to prevent. So either this is a bug the linter caught and someone shrugged off, or my theory about why the pattern exists was wrong. I think it's the second one, and the reason is worth the detour.
+
+## Why this one's actually safe
+
+`isListDraggable` isn't state — it's [derived straight from a prop](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ListBox.tsx#L242-L246): `let {dragAndDropHooks} = props; let isListDraggable = !!dragAndDropHooks?.useDraggableCollectionState;`. Whether this hook call happens is decided entirely by whether the consumer passed a `dragAndDropHooks` prop — not by anything that changes mid-lifecycle for a well-behaved consumer.
+
+"Well-behaved" is doing some work in that sentence, and `react-aria-components` doesn't just assume it — it checks, at [ListBox.tsx:297-313](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/ListBox.tsx#L297-L313):
+
+```jsx
+let dragHooksProvided = useRef(isListDraggable);
+useEffect(() => {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+  if (dragHooksProvided.current !== isListDraggable) {
+    console.warn(
+      'Drag hooks were provided during one render, but not another. This should be avoided as it may produce unexpected behavior.'
+    );
+  }
+}, [isListDraggable, isListDroppable]);
+```
+
+A `ref` captures whether drag hooks were present on the *first* render, and a dev-only effect warns the moment that stops matching reality. That's a trip wire built specifically for the one failure mode that would actually break the conditional hook call above it — a consumer flipping `dragAndDropHooks` on and off between renders. They're not following the Rules of Hooks blindly; they're bypassing the rule where they've judged the risk, and building a runtime guard for exactly that risk instead of trusting the lint rule to cover it.
+
+And this isn't a one-off — the identical `useRef` + dev-warning pair shows up guarding the same conditional-hook pattern in [GridList.tsx:322-330](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/GridList.tsx#L322-L330), [Table.tsx:744-752](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Table.tsx#L744-L752), and [Tree.tsx:409-415](https://github.com/adobe/react-spectrum/blob/16eead67e83cf42f3c0ee46ef6eb7a2032778378/packages/react-aria-components/src/Tree.tsx#L409-L415) — same warning string, word for word, in four different components.
+
+## So what's the `let` pattern actually for?
+
+Something much more mundane than hook safety, and it's been true of JSX since before hooks existed: JSX only has *expression*-level conditionals — a ternary, or `&&` — and neither scales past about one line of content. Try to inline the `emptyState` block from the top of this piece as a ternary inside the `return`, and you get a multi-line JSX expression nested inside a conditional expression nested inside another JSX expression, which is unreadable well before it's wrong.
+
+`let x = null; if (cond) { x = <Thing/> }` sidesteps that entirely — ordinary imperative `if`, any amount of setup, computed once, referenced by a plain name at the one spot it's used. It's the same move as pulling any complicated inline expression out into a named variable before you use it; it just happens to be JSX on the right-hand side here. The single `return` at the bottom isn't there to protect hook ordering specifically — `react-aria-components` has already shown it'll bend that rule when it's confident the condition won't move. It's there because that's just what you do with a value that got too complicated to write inline.
+
+## Three things worth keeping
+
+- The `let`/single-`return` pattern isn't a Rules-of-Hooks workaround — it's just how you build non-trivial conditional JSX when the language only gives you expression-level `if`.
+- "Hooks must be called unconditionally" is a convention this library enforces with real discipline, except in the one place they've proven the condition is stable — and there, they replace the lint rule with a runtime check instead of just suppressing it and hoping.
+- A linter comment that silences a rule is worth reading as a question, not a dismissal: *why did they think this was safe here specifically?* The answer was two files away, in a `useRef` and a `console.warn` built for exactly that one failure case.
